@@ -11,7 +11,7 @@ import (
 )
 
 type eventHandlers struct {
-	danmukuMessageHandlers []func(*message.Danmuku)
+	danmukuMessageHandlers []func(*message.Danmaku)
 	superChatHandlers      []func(*message.SuperChat)
 	giftHandlers           []func(*message.Gift)
 	guardBuyHandlers       []func(*message.GuardBuy)
@@ -24,7 +24,7 @@ func (c *Client) RegisterCustomEventHandler(cmd string, handler func(s string)) 
 	(*c.customEventHandlers)[cmd] = handler
 }
 
-func (c *Client) OnDanmuku(f func(*message.Danmuku)) {
+func (c *Client) OnDanmuku(f func(*message.Danmaku)) {
 	c.eventHandlers.danmukuMessageHandlers = append(c.eventHandlers.danmukuMessageHandlers, f)
 }
 
@@ -57,7 +57,7 @@ func (c *Client) Handle(p packet.Packet) {
 		}
 		switch cmd {
 		case "DANMU_MSG":
-			d := new(message.Danmuku)
+			d := new(message.Danmaku)
 			d.Parse(p.Body)
 			for _, fn := range c.eventHandlers.danmukuMessageHandlers {
 				go cover(func() { fn(d) })

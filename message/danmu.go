@@ -7,10 +7,11 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-type Danmuku struct {
-	Sender  User
-	Content string
-	Extra   Extra
+type Danmaku struct {
+	Sender    User
+	Content   string
+	Extra     Extra
+	Timestamp int64
 }
 
 type Extra struct {
@@ -30,7 +31,7 @@ type Extra struct {
 	SpaceUrl       string `json:"space_url"`
 }
 
-func (d *Danmuku) Parse(data []byte) {
+func (d *Danmaku) Parse(data []byte) {
 	sb := bytes.NewBuffer(data).String()
 	info := gjson.Get(sb, "info")
 	d.Content = info.Get("1").String()
@@ -49,4 +50,5 @@ func (d *Danmuku) Parse(data []byte) {
 		log.Error("parse danmuku extra failed")
 	}
 	d.Extra = *ext
+	d.Timestamp = info.Get("0.4").Int()
 }
