@@ -66,7 +66,11 @@ func main() {
 #### 监听自定义事件
 
 通过自定义监听事件，可以支持更多事件处理。  
-其中，`cmd`为要监听的`cmd`名（下附常见`cmd`名）， `handler`为接收事件消息（字符串的JSON）的函数
+其中，`cmd`为要监听的`cmd`名（下附常见`cmd`名）， `handler`为接收事件消息（字符串的JSON）的函数  
+**注意**  
+优先执行自定义 eventHandler ，会**覆盖库内自带的 handler**  
+例如，如果你`RegisterCustomEventHandler("DANMU_MSG", ...`  
+那么你使用`OnDanmuku`则不会再生效
 ```go
 func (c *Client) RegisterCustomEventHandler(cmd string, handler func(s string))
 ```
