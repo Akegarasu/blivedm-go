@@ -113,6 +113,7 @@ func (c *Client) Handle(p packet.Packet) {
 		case "STOP_LIVE_ROOM_LIST":
 		case "ONLINE_RANK_TOP3":
 		case "HOT_RANK_CHANGED":
+		case "HOT_RANK_CHANGED_V2":
 		default:
 			//log.Infof("cmd %s, %s", p.Body, cmd)
 			log.WithField("data", string(p.Body)).Warn("unknown cmd")
