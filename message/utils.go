@@ -26,3 +26,82 @@ type WidgetBanner struct {
 		} `json:"58"`
 	} `json:"widget_list"`
 }
+
+type HotRankChanged struct {
+	Rank        int    `json:"rank"`
+	Trend       int    `json:"trend"`
+	Countdown   int    `json:"countdown"`
+	Timestamp   int    `json:"timestamp"`
+	WebUrl      string `json:"web_url"`
+	LiveUrl     string `json:"live_url"`
+	BlinkUrl    string `json:"blink_url"`
+	LiveLinkUrl string `json:"live_link_url"`
+	PcLinkUrl   string `json:"pc_link_url"`
+	Icon        string `json:"icon"`
+	AreaName    string `json:"area_name"`
+	RankDesc    string `json:"rank_desc"`
+}
+
+type HotRankChangedV2 HotRankChanged
+
+type InteractWord struct {
+	Contribution struct {
+		Grade int `json:"grade"`
+	} `json:"contribution"`
+	Dmscore   int `json:"dmscore"`
+	FansMedal struct {
+		AnchorRoomid     int    `json:"anchor_roomid"`
+		GuardLevel       int    `json:"guard_level"`
+		IconId           int    `json:"icon_id"`
+		IsLighted        int    `json:"is_lighted"`
+		MedalColor       int    `json:"medal_color"`
+		MedalColorBorder int    `json:"medal_color_border"`
+		MedalColorEnd    int    `json:"medal_color_end"`
+		MedalColorStart  int    `json:"medal_color_start"`
+		MedalLevel       int    `json:"medal_level"`
+		MedalName        string `json:"medal_name"`
+		Score            int    `json:"score"`
+		Special          string `json:"special"`
+		TargetId         int    `json:"target_id"`
+	} `json:"fans_medal"`
+	Identities  []int  `json:"identities"`
+	IsSpread    int    `json:"is_spread"`
+	MsgType     int    `json:"msg_type"`
+	Roomid      int    `json:"roomid"`
+	Score       int64  `json:"score"`
+	SpreadDesc  string `json:"spread_desc"`
+	SpreadInfo  string `json:"spread_info"`
+	TailIcon    int    `json:"tail_icon"`
+	Timestamp   int    `json:"timestamp"`
+	TriggerTime int64  `json:"trigger_time"`
+	Uid         int    `json:"uid"`
+	Uname       string `json:"uname"`
+	UnameColor  string `json:"uname_color"`
+}
+
+type OnlineRankCount struct {
+	Count int `json:"count"`
+}
+
+type LiveInteractiveGame struct {
+	Type           int         `json:"type"`
+	Uid            int         `json:"uid"`
+	Uname          string      `json:"uname"`
+	Uface          string      `json:"uface"`
+	GiftId         int         `json:"gift_id"`
+	GiftName       string      `json:"gift_name"`
+	GiftNum        int         `json:"gift_num"`
+	Price          int         `json:"price"`
+	Paid           bool        `json:"paid"`
+	Msg            string      `json:"msg"`
+	FansMedalLevel int         `json:"fans_medal_level"`
+	GuardLevel     int         `json:"guard_level"`
+	Timestamp      int         `json:"timestamp"`
+	AnchorLottery  interface{} `json:"anchor_lottery"`
+	PkInfo         interface{} `json:"pk_info"`
+	AnchorInfo     struct {
+		Uid   int    `json:"uid"`
+		Uname string `json:"uname"`
+		Uface string `json:"uface"`
+	} `json:"anchor_info"`
+}
