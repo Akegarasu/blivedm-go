@@ -31,7 +31,7 @@ import (
 func main() {
 	c := client.NewClient("8792912")
 	// 弹幕事件
-	c.OnDanmuku(func(danmuku *message.Danmuku) {
+	c.OnDanmaku(func(danmuku *message.Danmaku) {
 		fmt.Printf("[弹幕] %s：%s\n", danmuku.Sender.Uname, danmuku.Content)
 	})
 	// 醒目留言事件
@@ -70,7 +70,7 @@ func main() {
 **注意**  
 优先执行自定义 eventHandler ，会**覆盖库内自带的 handler**  
 例如，如果你`RegisterCustomEventHandler("DANMU_MSG", ...`  
-那么你使用`OnDanmuku`则不会再生效
+那么你使用`OnDanmaku`则不会再生效
 ```go
 func (c *Client) RegisterCustomEventHandler(cmd string, handler func(s string))
 ```
