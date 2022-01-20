@@ -59,7 +59,7 @@ func (c *Client) Start() {
 			}
 		}
 	}()
-	c.startHeartBeat()
+	go c.startHeartBeat()
 }
 
 func (c *Client) ConnectAndStart() error {
