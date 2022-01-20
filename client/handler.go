@@ -87,33 +87,34 @@ func (c *Client) Handle(p packet.Packet) {
 				go cover(func() { fn(l) })
 			}
 		//TODO: cmd补全
-		//case "INTERACT_WORD":
-		//case "ROOM_BANNER":
-		//case "ROOM_REAL_TIME_MESSAGE_UPDATE":
-		//case "NOTICE_MSG":
-		//case "COMBO_SEND":
-		//case "COMBO_END":
-		//case "ENTRY_EFFECT":
-		//case "WELCOME_GUARD":
-		//case "WELCOME":
-		//case "ROOM_RANK":
-		//case "ACTIVITY_BANNER_UPDATE_V2":
-		//case "PANEL":
-		//case "SUPER_CHAT_MESSAGE_JPN":
-		//case "USER_TOAST_MSG":
-		//case "ROOM_BLOCK_MSG":
-		//case "PREPARING":
-		//case "room_admin_entrance":
-		//case "ROOM_ADMINS":
-		//case "ROOM_CHANGE":
-		//case "LIVE_INTERACTIVE_GAME":
-		//case "WIDGET_BANNER":
-		//case "ONLINE_RANK_COUNT":
-		//case "ONLINE_RANK_V2":
-		//case "STOP_LIVE_ROOM_LIST":
-		//case "ONLINE_RANK_TOP3":
-		//case "HOT_RANK_CHANGED":
+		case "INTERACT_WORD":
+		case "ROOM_BANNER":
+		case "ROOM_REAL_TIME_MESSAGE_UPDATE":
+		case "NOTICE_MSG":
+		case "COMBO_SEND":
+		case "COMBO_END":
+		case "ENTRY_EFFECT":
+		case "WELCOME_GUARD":
+		case "WELCOME":
+		case "ROOM_RANK":
+		case "ACTIVITY_BANNER_UPDATE_V2":
+		case "PANEL":
+		case "SUPER_CHAT_MESSAGE_JPN":
+		case "USER_TOAST_MSG":
+		case "ROOM_BLOCK_MSG":
+		case "PREPARING":
+		case "room_admin_entrance":
+		case "ROOM_ADMINS":
+		case "ROOM_CHANGE":
+		case "LIVE_INTERACTIVE_GAME":
+		case "WIDGET_BANNER":
+		case "ONLINE_RANK_COUNT":
+		case "ONLINE_RANK_V2":
+		case "STOP_LIVE_ROOM_LIST":
+		case "ONLINE_RANK_TOP3":
+		case "HOT_RANK_CHANGED":
 		default:
+			//log.Infof("cmd %s, %s", p.Body, cmd)
 			log.WithField("data", string(p.Body)).Warn("unknown cmd")
 		}
 	case packet.HeartBeatResponse:
