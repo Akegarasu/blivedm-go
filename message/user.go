@@ -3,7 +3,7 @@ package message
 type User struct {
 	Uid   int
 	Uname string
-	Medal Medal
+	Medal *Medal
 }
 
 type Medal struct {
