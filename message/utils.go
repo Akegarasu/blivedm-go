@@ -44,6 +44,31 @@ type HotRankChanged struct {
 
 type HotRankChangedV2 HotRankChanged
 
+type HotRankSettlement struct {
+	AreaName  string `json:"area_name"`
+	CacheKey  string `json:"cache_key"`
+	DmMsg     string `json:"dm_msg"`
+	Dmscore   int    `json:"dmscore"`
+	Face      string `json:"face"`
+	Icon      string `json:"icon"`
+	Rank      int    `json:"rank"`
+	Timestamp int    `json:"timestamp"`
+	Uname     string `json:"uname"`
+	Url       string `json:"url"`
+}
+
+type HotRankSettlementV2 struct {
+	Rank      int    `json:"rank"`
+	Uname     string `json:"uname"`
+	Face      string `json:"face"`
+	Timestamp int    `json:"timestamp"`
+	Icon      string `json:"icon"`
+	AreaName  string `json:"area_name"`
+	Url       string `json:"url"`
+	CacheKey  string `json:"cache_key"`
+	DmMsg     string `json:"dm_msg"`
+}
+
 type InteractWord struct {
 	Contribution struct {
 		Grade int `json:"grade"`
