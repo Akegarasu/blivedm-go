@@ -47,6 +47,15 @@ type (
 		Url            string `json:"url"`
 		Width          int    `json:"width"`
 	}
+	CommonNoticeDanmaku struct {
+		ContentSegments []struct {
+			FontColor string `json:"font_color"`
+			Text      string `json:"text"`
+			Type      int    `json:"type"`
+		} `json:"content_segments"`
+		Dmscore   int   `json:"dmscore"`
+		Terminals []int `json:"terminals"`
+	}
 )
 
 func (d *Danmaku) Parse(data []byte) {
