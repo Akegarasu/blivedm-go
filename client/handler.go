@@ -10,6 +10,11 @@ import (
 	"runtime/debug"
 )
 
+var (
+	knownCMDs   = []string{"INTERACT_WORD", "HOT_RANK_SETTLEMENT", "DANMU_GIFT_LOTTERY_START", "WELCOME_GUARD", "PK_PROCESS", "PK_BATTLE_PRO_TYPE", "MATCH_TEAM_GIFT_RANK", "PK_BATTLE_CRIT", "LUCK_GIFT_AWARD_USER", "SCORE_CARD", "ONLINE_RANK_V2", "PK_BATTLE_SPECIAL_GIFT", "SEND_TOP", "SUPER_CHAT_MESSAGE_JPN", "ANIMATION", "GUARD_LOTTERY_START", "WEEK_STAR_CLOCK", "WELCOME", "WIN_ACTIVITY", "ROOM_KICKOUT", "CHANGE_ROOM_INFO", "ROOM_SKIN_MSG", "ROOM_BLOCK_MSG", "SUPER_CHAT_ENTRANCE", "PK_BATTLE_RANK_CHANGE", "ROOM_LOCK", "TV_END", "PK_PRE", "ROOM_SILENT_OFF", "SEND_GIFT", "DANMU_MSG", "ANCHOR_LOT_START", "ROOM_BOX_USER", "ONLINE_RANK_TOP3", "WIDGET_BANNER", "PK_BATTLE_START", "ACTIVITY_MATCH_GIFT", "PK_AGAIN", "PK_MATCH", "RAFFLE_START", "LIVE", "WISH_BOTTLE", "GUARD_ACHIEVEMENT_ROOM", "ONLINE_RANK_COUNT", "COMMON_NOTICE_DANMAKU", "LOL_ACTIVITY", "HOT_RANK_CHANGED", "ROOM_BLOCK_INTO", "ROOM_LIMIT", "PANEL", "RAFFLE_END", "ENTRY_EFFECT", "STOP_LIVE_ROOM_LIST", "TV_START", "WATCH_LPL_EXPIRED", "PK_BATTLE_PRE", "USER_TOAST_MSG", "BOX_ACTIVITY_START", "PK_MIC_END", "LIVE_INTERACTIVE_GAME", "ROOM_BANNER", "PK_BATTLE_GIFT", "MESSAGEBOX_USER_GAIN_MEDAL", "LITTLE_TIPS", "HOUR_RANK_AWARDS", "NOTICE_MSG", "ROOM_REAL_TIME_MESSAGE_UPDATE", "ANCHOR_LOT_END", "PREPARING", "GUARD_BUY", "ROOM_CHANGE", "room_admin_entrance", "CHASE_FRAME_SWITCH", "DANMU_GIFT_LOTTERY_AWARD", "PK_BATTLE_VOTES_ADD", "PK_BATTLE_END", "CUT_OFF", "PK_BATTLE_PROCESS", "PK_BATTLE_SETTLE_USER", "ANCHOR_LOT_AWARD", "WIN_ACTIVITY_USER", "VOICE_JOIN_STATUS", "DANMU_GIFT_LOTTERY_END", "ROOM_RANK", "SUPER_CHAT_MESSAGE", "ACTIVITY_BANNER_UPDATE_V2", "SPECIAL_GIFT", "ROOM_SILENT_ON", "WARNING", "ROOM_ADMINS", "COMBO_SEND", "HOT_RANK_SETTLEMENT_V2", "ANCHOR_LOT_CHECKSTATUS", "HOT_RANK_CHANGED_V2", "SUPER_CHAT_MESSAGE_DELETE", "PK_END", "PK_SETTLE", "ROOM_REFRESH", "PK_START", "COMBO_END", "PK_LOTTERY_START"}
+	knownCMDmap map[string]int
+)
+
 type eventHandlers struct {
 	danmakuMessageHandlers []func(*message.Danmaku)
 	superChatHandlers      []func(*message.SuperChat)
@@ -19,6 +24,13 @@ type eventHandlers struct {
 }
 
 type customEventHandlers map[string]func(s string)
+
+func init() {
+	knownCMDmap = make(map[string]int)
+	for _, c := range knownCMDs {
+		knownCMDmap[c] = 0
+	}
+}
 
 func (c *Client) RegisterCustomEventHandler(cmd string, handler func(s string)) {
 	(*c.customEventHandlers)[cmd] = handler
@@ -86,39 +98,11 @@ func (c *Client) Handle(p packet.Packet) {
 			for _, fn := range c.eventHandlers.liveHandlers {
 				go cover(func() { fn(l) })
 			}
-		//TODO: cmd补全
-		case "INTERACT_WORD":
-		case "ROOM_BANNER":
-		case "ROOM_REAL_TIME_MESSAGE_UPDATE":
-		case "NOTICE_MSG":
-		case "COMBO_SEND":
-		case "COMBO_END":
-		case "ENTRY_EFFECT":
-		case "WELCOME_GUARD":
-		case "WELCOME":
-		case "ROOM_RANK":
-		case "ACTIVITY_BANNER_UPDATE_V2":
-		case "PANEL":
-		case "SUPER_CHAT_MESSAGE_JPN":
-		case "USER_TOAST_MSG":
-		case "ROOM_BLOCK_MSG":
-		case "PREPARING":
-		case "room_admin_entrance":
-		case "ROOM_ADMINS":
-		case "ROOM_CHANGE":
-		case "LIVE_INTERACTIVE_GAME":
-		case "WIDGET_BANNER":
-		case "ONLINE_RANK_COUNT":
-		case "ONLINE_RANK_V2":
-		case "STOP_LIVE_ROOM_LIST":
-		case "ONLINE_RANK_TOP3":
-		case "HOT_RANK_CHANGED":
-		case "HOT_RANK_CHANGED_V2":
-		case "COMMON_NOTICE_DANMAKU":
-		case "HOT_RANK_SETTLEMENT":
-		case "HOT_RANK_SETTLEMENT_V2":
 		default:
-			//log.Infof("cmd %s, %s", p.Body, cmd)
+			if _, ok := knownCMDmap[cmd]; ok {
+				return
+			}
+			log.Infof("cmd %s, %s", p.Body, cmd)
 			log.WithField("data", string(p.Body)).Warn("unknown cmd")
 		}
 	case packet.HeartBeatResponse:
