@@ -49,6 +49,7 @@ func (c *Client) Start() {
 			msgType, data, err := c.conn.ReadMessage()
 			if err != nil {
 				_ = c.Connect()
+				continue
 			}
 			if msgType != websocket.BinaryMessage {
 				log.Error("packet not binary", data)
