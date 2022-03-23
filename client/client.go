@@ -30,7 +30,10 @@ func NewClient(roomID string) *Client {
 
 func (c *Client) Connect() error {
 	if c.host == "" {
-		info := getDanmuInfo(c.roomID)
+		info, err := getDanmuInfo(c.roomID)
+		if err != nil {
+			return err
+		}
 		c.host = fmt.Sprintf("wss://%s/sub", info.Data.HostList[0].Host)
 		c.token = info.Data.Token
 	}
@@ -103,7 +106,7 @@ func (c *Client) sendEnterPacket() {
 	log.Debugf("send: EnterPacket: %v", pkt)
 }
 
-func getDanmuInfo(roomID string) *DanmuInfo {
+func getDanmuInfo(roomID string) (*DanmuInfo, error) {
 	url := fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id=%s&type=0", roomID)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -112,7 +115,7 @@ func getDanmuInfo(roomID string) *DanmuInfo {
 	defer resp.Body.Close()
 	result := &DanmuInfo{}
 	if err = json.NewDecoder(resp.Body).Decode(result); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return result
+	return result, nil
 }
