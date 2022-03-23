@@ -1,7 +1,7 @@
 package client
 
 // DanmuInfo
-// api https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id=29332&type=0 response
+// api https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id={}&type=0 response
 type DanmuInfo struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
