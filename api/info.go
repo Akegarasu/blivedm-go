@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 )
@@ -33,7 +34,43 @@ type RoomInfo struct {
 	} `json:"data"`
 }
 
-func getRoomInfo(roomID string) (*RoomInfo, error) {
+// DanmuInfo
+// api https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id={}&type=0 response
+type DanmuInfo struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Ttl     int    `json:"ttl"`
+	Data    struct {
+		Group            string  `json:"group"`
+		BusinessId       int     `json:"business_id"`
+		RefreshRowFactor float64 `json:"refresh_row_factor"`
+		RefreshRate      int     `json:"refresh_rate"`
+		MaxDelay         int     `json:"max_delay"`
+		Token            string  `json:"token"`
+		HostList         []struct {
+			Host    string `json:"host"`
+			Port    int    `json:"port"`
+			WssPort int    `json:"wss_port"`
+			WsPort  int    `json:"ws_port"`
+		} `json:"host_list"`
+	} `json:"data"`
+}
+
+func GetDanmuInfo(roomID string) (*DanmuInfo, error) {
+	url := fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id=%s&type=0", roomID)
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+	result := &DanmuInfo{}
+	if err = json.NewDecoder(resp.Body).Decode(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func GetRoomInfo(roomID string) (*RoomInfo, error) {
 	url := fmt.Sprintf("https://api.live.bilibili.com/room/v1/Room/room_init?id=%s", roomID)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -48,7 +85,7 @@ func getRoomInfo(roomID string) (*RoomInfo, error) {
 }
 
 func GetRoomRealID(roomID string) (string, error) {
-	res, err := getRoomInfo(roomID)
+	res, err := GetRoomInfo(roomID)
 	if err != nil {
 		return "", err
 	}
