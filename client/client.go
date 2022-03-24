@@ -1,14 +1,12 @@
 package client
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Akegarasu/blivedm-go/api"
 	"github.com/Akegarasu/blivedm-go/packet"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
-	"net/http"
 	"strconv"
 	"time"
 )
@@ -40,7 +38,7 @@ func (c *Client) Connect() error {
 		c.roomID = realID
 	}
 	if c.host == "" {
-		info, err := getDanmuInfo(c.roomID)
+		info, err := api.GetDanmuInfo(c.roomID)
 		if err != nil {
 			return err
 		}
@@ -119,18 +117,4 @@ func (c *Client) sendEnterPacket() error {
 	}
 	log.Debugf("send: EnterPacket: %v", pkt)
 	return nil
-}
-
-func getDanmuInfo(roomID string) (*DanmuInfo, error) {
-	url := fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id=%s&type=0", roomID)
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-	result := &DanmuInfo{}
-	if err = json.NewDecoder(resp.Body).Decode(result); err != nil {
-		return nil, err
-	}
-	return result, nil
 }
