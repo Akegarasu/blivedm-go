@@ -112,7 +112,7 @@ func (c *Client) sendEnterPacket() error {
 		return errors.New("error roomID")
 	}
 	pkt := packet.NewEnterPacket(0, rid)
-	if err := c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
+	if err = c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
 		return err
 	}
 	log.Debugf("send: EnterPacket: %v", pkt)
