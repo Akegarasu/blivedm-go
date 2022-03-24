@@ -2,7 +2,7 @@ package packet
 
 import (
 	"encoding/json"
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
 type Enter struct {
@@ -35,7 +35,7 @@ func NewEnterPacket(uid int, roomID int) []byte {
 func (e *Enter) Json() []byte {
 	marshal, err := json.Marshal(e)
 	if err != nil {
-		log.Fatalln("NewEnterPacket JsonMarshal failed", err)
+		log.Error("NewEnterPacket JsonMarshal failed", err)
 	}
 	return marshal
 }

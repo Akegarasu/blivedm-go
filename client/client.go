@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/Akegarasu/blivedm-go/api"
 	"github.com/Akegarasu/blivedm-go/packet"
@@ -54,8 +55,10 @@ func (c *Client) Connect() error {
 	return nil
 }
 
-func (c *Client) Start() {
-	c.sendEnterPacket()
+func (c *Client) Start() error {
+	if err := c.sendEnterPacket(); err != nil {
+		return err
+	}
 	go func() {
 		for {
 			msgType, data, err := c.conn.ReadMessage()
@@ -73,14 +76,16 @@ func (c *Client) Start() {
 		}
 	}()
 	go c.startHeartBeat()
+	return nil
 }
 
 func (c *Client) ConnectAndStart() error {
-	err := c.Connect()
-	if err != nil {
+	if err := c.Connect(); err != nil {
 		return err
 	}
-	c.Start()
+	if err := c.Start(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -96,23 +101,24 @@ func (c *Client) startHeartBeat() {
 	pkt := packet.NewHeartBeatPacket()
 	for {
 		if err := c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
-			log.Fatal(err)
+			log.Error(err)
 		}
 		log.Debug("send: HeartBeat")
 		time.Sleep(30 * time.Second)
 	}
 }
 
-func (c *Client) sendEnterPacket() {
+func (c *Client) sendEnterPacket() error {
 	rid, err := strconv.Atoi(c.roomID)
 	if err != nil {
-		log.Fatal("error roomID")
+		return errors.New("error roomID")
 	}
 	pkt := packet.NewEnterPacket(0, rid)
 	if err := c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
-		log.Fatal(err)
+		return err
 	}
 	log.Debugf("send: EnterPacket: %v", pkt)
+	return nil
 }
 
 func getDanmuInfo(roomID string) (*DanmuInfo, error) {
