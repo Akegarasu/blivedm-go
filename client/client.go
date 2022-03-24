@@ -3,6 +3,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Akegarasu/blivedm-go/api"
 	"github.com/Akegarasu/blivedm-go/packet"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
@@ -29,6 +30,14 @@ func NewClient(roomID string) *Client {
 }
 
 func (c *Client) Connect() error {
+	rid, _ := strconv.Atoi(c.roomID)
+	if rid <= 1000 {
+		realID, err := api.GetRoomRealID(c.roomID)
+		if err != nil {
+			return err
+		}
+		c.roomID = realID
+	}
 	if c.host == "" {
 		info, err := getDanmuInfo(c.roomID)
 		if err != nil {
