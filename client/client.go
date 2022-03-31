@@ -18,6 +18,7 @@ type Client struct {
 	host                string
 	eventHandlers       *eventHandlers
 	customEventHandlers *customEventHandlers
+	done                chan struct{}
 }
 
 func NewClient(roomID string) *Client {
@@ -25,6 +26,7 @@ func NewClient(roomID string) *Client {
 		roomID:              roomID,
 		eventHandlers:       &eventHandlers{},
 		customEventHandlers: &customEventHandlers{},
+		done:                make(chan struct{}),
 	}
 }
 
@@ -59,22 +61,31 @@ func (c *Client) Start() error {
 	}
 	go func() {
 		for {
-			msgType, data, err := c.conn.ReadMessage()
-			if err != nil {
-				_ = c.Connect()
-				continue
-			}
-			if msgType != websocket.BinaryMessage {
-				log.Error("packet not binary", data)
-				continue
-			}
-			for _, pkt := range packet.DecodePacket(data).Parse() {
-				go c.Handle(pkt)
+			select {
+			case <-c.done:
+				return
+			default:
+				msgType, data, err := c.conn.ReadMessage()
+				if err != nil {
+					_ = c.Connect()
+					continue
+				}
+				if msgType != websocket.BinaryMessage {
+					log.Error("packet not binary", data)
+					continue
+				}
+				for _, pkt := range packet.DecodePacket(data).Parse() {
+					go c.Handle(pkt)
+				}
 			}
 		}
 	}()
 	go c.startHeartBeat()
 	return nil
+}
+
+func (c *Client) Stop() {
+	close(c.done)
 }
 
 func (c *Client) ConnectAndStart() error {
@@ -98,11 +109,15 @@ func (c *Client) UseDefaultHost() {
 func (c *Client) startHeartBeat() {
 	pkt := packet.NewHeartBeatPacket()
 	for {
-		if err := c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
-			log.Error(err)
+		select {
+		case <-c.done:
+			return
+		case <-time.After(30 * time.Second):
+			if err := c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
+				log.Error(err)
+			}
+			log.Debug("send: HeartBeat")
 		}
-		log.Debug("send: HeartBeat")
-		time.Sleep(30 * time.Second)
 	}
 }
 
