@@ -20,6 +20,7 @@ type (
 		Emoticon  *Emoticon
 		Type      int
 		Timestamp int64
+		Raw       string
 	}
 
 	Extra struct {
@@ -85,4 +86,5 @@ func (d *Danmaku) Parse(data []byte) {
 	d.Emoticon = emo
 	d.Type = int(info.Get("0.12").Int())
 	d.Timestamp = info.Get("0.4").Int()
+	d.Raw = sb
 }
