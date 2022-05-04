@@ -77,9 +77,11 @@ func (d *Danmaku) Parse(data []byte) {
 		Uid:   int(info.Get("2.0").Int()),
 		Uname: info.Get("2.1").String(),
 		Medal: &Medal{
-			Name:  info.Get("3.1").String(),
-			Level: int(info.Get("3.0").Int()),
-			Up:    info.Get("3.2").String(),
+			Name:     info.Get("3.1").String(),
+			Level:    int(info.Get("3.0").Int()),
+			UpUid:    int(info.Get("3.12").Int()),
+			UpRoomId: int(info.Get("3.3").Int()),
+			UpName:   info.Get("3.2").String(),
 		},
 	}
 	d.Extra = ext

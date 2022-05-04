@@ -7,7 +7,9 @@ type User struct {
 }
 
 type Medal struct {
-	Name  string
-	Level int
-	Up    string
+	Name     string
+	Level    int
+	UpRoomId int
+	UpUid    int
+	UpName   string
 }
