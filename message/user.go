@@ -1,9 +1,10 @@
 package message
 
 type User struct {
-	Uid   int
-	Uname string
-	Medal *Medal
+	Uid        int
+	Uname      string
+	Medal      *Medal
+	GuardLevel int
 }
 
 type Medal struct {

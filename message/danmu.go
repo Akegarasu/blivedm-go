@@ -74,8 +74,9 @@ func (d *Danmaku) Parse(data []byte) {
 	}
 	d.Content = info.Get("1").String()
 	d.Sender = &User{
-		Uid:   int(info.Get("2.0").Int()),
-		Uname: info.Get("2.1").String(),
+		Uid:        int(info.Get("2.0").Int()),
+		Uname:      info.Get("2.1").String(),
+		GuardLevel: int(info.Get("7").Int()),
 		Medal: &Medal{
 			Name:     info.Get("3.1").String(),
 			Level:    int(info.Get("3.0").Int()),
