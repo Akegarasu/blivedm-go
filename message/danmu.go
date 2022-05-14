@@ -74,15 +74,19 @@ func (d *Danmaku) Parse(data []byte) {
 	}
 	d.Content = info.Get("1").String()
 	d.Sender = &User{
-		Uid:        int(info.Get("2.0").Int()),
-		Uname:      info.Get("2.1").String(),
-		GuardLevel: int(info.Get("7").Int()),
+		Uid:          int(info.Get("2.0").Int()),
+		Uname:        info.Get("2.1").String(),
+		Admin:        info.Get("2.2").Bool(),
+		Urank:        int(info.Get("2.5").Int()),
+		MobileVerify: info.Get("2.6").Bool(),
+		GuardLevel:   int(info.Get("7").Int()),
 		Medal: &Medal{
-			Name:     info.Get("3.1").String(),
 			Level:    int(info.Get("3.0").Int()),
-			UpUid:    int(info.Get("3.12").Int()),
-			UpRoomId: int(info.Get("3.3").Int()),
+			Name:     info.Get("3.1").String(),
 			UpName:   info.Get("3.2").String(),
+			UpRoomId: int(info.Get("3.3").Int()),
+			Color:    int(info.Get("3.4").Int()),
+			UpUid:    int(info.Get("3.12").Int()),
 		},
 	}
 	d.Extra = ext
