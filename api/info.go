@@ -1,10 +1,7 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"net/http"
 	"strconv"
 )
 
@@ -57,28 +54,18 @@ type DanmuInfo struct {
 }
 
 func GetDanmuInfo(roomID string) (*DanmuInfo, error) {
-	url := fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id=%s&type=0", roomID)
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
 	result := &DanmuInfo{}
-	if err = json.NewDecoder(resp.Body).Decode(result); err != nil {
+	err := GetJson(fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id=%s&type=0", roomID), result)
+	if err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
 func GetRoomInfo(roomID string) (*RoomInfo, error) {
-	url := fmt.Sprintf("https://api.live.bilibili.com/room/v1/Room/room_init?id=%s", roomID)
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
 	result := &RoomInfo{}
-	if err = json.NewDecoder(resp.Body).Decode(result); err != nil {
+	err := GetJson(fmt.Sprintf("https://api.live.bilibili.com/room/v1/Room/room_init?id=%s", roomID), result)
+	if err != nil {
 		return nil, err
 	}
 	return result, nil
