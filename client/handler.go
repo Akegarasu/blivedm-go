@@ -102,8 +102,7 @@ func (c *Client) Handle(p packet.Packet) {
 			if _, ok := knownCMDMap[cmd]; ok {
 				return
 			}
-			log.Debugf("cmd %s, %s", p.Body, cmd)
-			log.WithField("data", string(p.Body)).Warn("unknown cmd")
+			log.Debugf("unknown cmd(%s), body: %s", cmd, p.Body)
 		}
 	case packet.HeartBeatResponse:
 	case packet.RoomEnterResponse:
