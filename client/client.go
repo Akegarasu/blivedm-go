@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/Akegarasu/blivedm-go/api"
@@ -18,7 +19,8 @@ type Client struct {
 	host                string
 	eventHandlers       *eventHandlers
 	customEventHandlers *customEventHandlers
-	done                chan struct{}
+	cancel              context.CancelFunc
+	done                <-chan struct{}
 }
 
 func NewClient(roomID string) *Client {
@@ -26,7 +28,6 @@ func NewClient(roomID string) *Client {
 		roomID:              roomID,
 		eventHandlers:       &eventHandlers{},
 		customEventHandlers: &customEventHandlers{},
-		done:                make(chan struct{}),
 	}
 }
 
@@ -51,7 +52,10 @@ func (c *Client) Connect() error {
 	if err != nil {
 		return err
 	}
+	ctx, cancel := context.WithCancel(context.Background())
 	c.conn = conn
+	c.done = ctx.Done()
+	c.cancel = cancel
 	return nil
 }
 
@@ -63,12 +67,20 @@ func (c *Client) Start() error {
 		for {
 			select {
 			case <-c.done:
+				log.Debug("current client closed")
 				return
 			default:
 				msgType, data, err := c.conn.ReadMessage()
 				if err != nil {
-					_ = c.Connect()
-					continue
+					log.Info("reconnecting...")
+					c.Stop()
+				retry:
+					err = c.ConnectAndStart()
+					if err != nil {
+						time.Sleep(1 * time.Second)
+						goto retry
+					}
+					break
 				}
 				if msgType != websocket.BinaryMessage {
 					log.Error("packet not binary", data)
@@ -85,7 +97,7 @@ func (c *Client) Start() error {
 }
 
 func (c *Client) Stop() {
-	close(c.done)
+	c.cancel()
 }
 
 func (c *Client) ConnectAndStart() error {
