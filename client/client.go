@@ -24,10 +24,13 @@ type Client struct {
 }
 
 func NewClient(roomID string) *Client {
+	ctx, cancel := context.WithCancel(context.Background())
 	return &Client{
 		roomID:              roomID,
 		eventHandlers:       &eventHandlers{},
 		customEventHandlers: &customEventHandlers{},
+		done:                ctx.Done(),
+		cancel:              cancel,
 	}
 }
 
@@ -48,21 +51,23 @@ func (c *Client) Connect() error {
 		c.host = fmt.Sprintf("wss://%s/sub", info.Data.HostList[0].Host)
 		c.token = info.Data.Token
 	}
-	conn, _, err := websocket.DefaultDialer.Dial(c.host, nil)
+retry:
+	conn, res, err := websocket.DefaultDialer.Dial(c.host, nil)
 	if err != nil {
-		return err
+		log.Error("connect dial failed, retry...")
+		time.Sleep(2 * time.Second)
+		goto retry
 	}
-	ctx, cancel := context.WithCancel(context.Background())
 	c.conn = conn
-	c.done = ctx.Done()
-	c.cancel = cancel
+	res.Body.Close()
+	if err = c.sendEnterPacket(); err != nil {
+		log.Error("connect enter packet send failed, retry...")
+		goto retry
+	}
 	return nil
 }
 
 func (c *Client) Start() error {
-	if err := c.sendEnterPacket(); err != nil {
-		return err
-	}
 	go func() {
 		for {
 			select {
@@ -72,15 +77,9 @@ func (c *Client) Start() error {
 			default:
 				msgType, data, err := c.conn.ReadMessage()
 				if err != nil {
-					log.Info("reconnecting...")
-					c.Stop()
-					for {
-						err = c.ConnectAndStart()
-						if err == nil {
-							return
-						}
-						time.Sleep(2 * time.Second)
-					}
+					time.Sleep(time.Duration(3) * time.Millisecond)
+					_ = c.Connect()
+					continue
 				}
 				if msgType != websocket.BinaryMessage {
 					log.Error("packet not binary", data)
