@@ -67,7 +67,7 @@ retry:
 	return nil
 }
 
-func (c *Client) Start() error {
+func (c *Client) Start() {
 	go func() {
 		for {
 			select {
@@ -92,7 +92,6 @@ func (c *Client) Start() error {
 		}
 	}()
 	go c.startHeartBeat()
-	return nil
 }
 
 func (c *Client) Stop() {
@@ -103,9 +102,7 @@ func (c *Client) ConnectAndStart() error {
 	if err := c.Connect(); err != nil {
 		return err
 	}
-	if err := c.Start(); err != nil {
-		return err
-	}
+	c.Start()
 	return nil
 }
 
