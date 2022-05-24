@@ -74,13 +74,13 @@ func (c *Client) Start() error {
 				if err != nil {
 					log.Info("reconnecting...")
 					c.Stop()
-				retry:
-					err = c.ConnectAndStart()
-					if err != nil {
-						time.Sleep(1 * time.Second)
-						goto retry
+					for {
+						err = c.ConnectAndStart()
+						if err == nil {
+							return
+						}
+						time.Sleep(2 * time.Second)
 					}
-					break
 				}
 				if msgType != websocket.BinaryMessage {
 					log.Error("packet not binary", data)
