@@ -15,6 +15,7 @@ import (
 type Client struct {
 	conn                *websocket.Conn
 	roomID              string
+	realRoomID          string
 	token               string
 	host                string
 	eventHandlers       *eventHandlers
@@ -36,15 +37,18 @@ func NewClient(roomID string) *Client {
 
 func (c *Client) Connect() error {
 	rid, _ := strconv.Atoi(c.roomID)
-	if rid <= 1000 {
+	if rid <= 1000 && c.realRoomID == "" {
 		realID, err := api.GetRoomRealID(c.roomID)
 		if err != nil {
 			return err
 		}
 		c.roomID = realID
+		c.realRoomID = realID
+	} else {
+		c.realRoomID = c.roomID
 	}
 	if c.host == "" {
-		info, err := api.GetDanmuInfo(c.roomID)
+		info, err := api.GetDanmuInfo(c.realRoomID)
 		if err != nil {
 			return err
 		}
@@ -67,31 +71,33 @@ retry:
 	return nil
 }
 
-func (c *Client) Start() {
-	go func() {
-		for {
-			select {
-			case <-c.done:
-				log.Debug("current client closed")
-				return
-			default:
-				msgType, data, err := c.conn.ReadMessage()
-				if err != nil {
-					time.Sleep(time.Duration(3) * time.Millisecond)
-					_ = c.Connect()
-					continue
-				}
-				if msgType != websocket.BinaryMessage {
-					log.Error("packet not binary", data)
-					continue
-				}
-				for _, pkt := range packet.DecodePacket(data).Parse() {
-					go c.Handle(pkt)
-				}
+func (c *Client) listen() {
+	for {
+		select {
+		case <-c.done:
+			log.Debug("current client closed")
+			return
+		default:
+			msgType, data, err := c.conn.ReadMessage()
+			if err != nil {
+				time.Sleep(time.Duration(3) * time.Millisecond)
+				_ = c.Connect()
+				continue
+			}
+			if msgType != websocket.BinaryMessage {
+				log.Error("packet not binary", data)
+				continue
+			}
+			for _, pkt := range packet.DecodePacket(data).Parse() {
+				go c.Handle(pkt)
 			}
 		}
-	}()
-	go c.startHeartBeat()
+	}
+}
+
+func (c *Client) Start() {
+	go c.listen()
+	go c.heartBeat()
 }
 
 func (c *Client) Stop() {
@@ -114,7 +120,7 @@ func (c *Client) UseDefaultHost() {
 	c.SetHost("wss://broadcastlv.chat.bilibili.com/sub")
 }
 
-func (c *Client) startHeartBeat() {
+func (c *Client) heartBeat() {
 	pkt := packet.NewHeartBeatPacket()
 	for {
 		select {
@@ -130,7 +136,7 @@ func (c *Client) startHeartBeat() {
 }
 
 func (c *Client) sendEnterPacket() error {
-	rid, err := strconv.Atoi(c.roomID)
+	rid, err := strconv.Atoi(c.realRoomID)
 	if err != nil {
 		return errors.New("error roomID")
 	}
