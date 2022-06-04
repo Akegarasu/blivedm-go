@@ -1,8 +1,10 @@
 package message
 
 import (
+	"bytes"
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
+	"github.com/tidwall/gjson"
 )
 
 type Gift struct {
@@ -109,9 +111,9 @@ type ComboSend struct {
 }
 
 func (g *Gift) Parse(data []byte) {
-	// len("{"cmd":"","data":") == 17 , len('SEND_GIFT') = 9
-	d := data[17+9 : len(data)-1]
-	err := json.Unmarshal(d, g)
+	sb := bytes.NewBuffer(data).String()
+	sd := gjson.Get(sb, "data").String()
+	err := json.Unmarshal([]byte(sd), g)
 	if err != nil {
 		log.Error("parse Gift failed")
 	}
