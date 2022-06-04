@@ -8,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	"runtime/debug"
+	"strings"
 )
 
 var (
@@ -61,6 +62,11 @@ func (c *Client) Handle(p packet.Packet) {
 	case packet.Notification:
 		sb := bytes.NewBuffer(p.Body).String()
 		cmd := gjson.Get(sb, "cmd").String()
+		// 新的弹幕 cmd 可能带参数
+		if strings.Contains(cmd, ":") {
+			index := strings.Index(cmd, ":")
+			cmd = cmd[:index]
+		}
 		// 优先执行自定义 eventHandler ，会覆盖库内自带的 handler
 		f, ok := (*c.customEventHandlers)[cmd]
 		if ok {
