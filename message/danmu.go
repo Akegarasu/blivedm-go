@@ -1,8 +1,7 @@
 package message
 
 import (
-	"bytes"
-	"encoding/json"
+	"github.com/Akegarasu/blivedm-go/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 )
@@ -60,15 +59,15 @@ type (
 )
 
 func (d *Danmaku) Parse(data []byte) {
-	sb := bytes.NewBuffer(data).String()
-	info := gjson.Get(sb, "info")
+	sb := utils.BytesToString(data)
+	info := gjson.Parse(sb).Get("info")
 	ext := new(Extra)
 	emo := new(Emoticon)
-	err := json.Unmarshal([]byte(info.Get("0.15.extra").String()), ext)
+	err := utils.UnmarshalString(info.Get("0.15.extra").String(), ext)
 	if err != nil {
 		log.Error("parse danmuku extra failed")
 	}
-	err = json.Unmarshal([]byte(info.Get("0.13").String()), emo)
+	err = utils.UnmarshalString(info.Get("0.13").String(), emo)
 	if err != nil {
 		log.Error("parse danmuku emoticon failed")
 	}
