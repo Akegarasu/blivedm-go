@@ -80,6 +80,7 @@ func (c *Client) listen() {
 		default:
 			msgType, data, err := c.conn.ReadMessage()
 			if err != nil {
+				log.Info("reconnect")
 				time.Sleep(time.Duration(3) * time.Millisecond)
 				_ = c.Connect()
 				continue
