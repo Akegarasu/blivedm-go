@@ -2,7 +2,6 @@ package client
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/Akegarasu/blivedm-go/message"
 	"github.com/Akegarasu/blivedm-go/packet"
 	log "github.com/sirupsen/logrus"
@@ -63,9 +62,9 @@ func (c *Client) Handle(p packet.Packet) {
 		sb := bytes.NewBuffer(p.Body).String()
 		cmd := gjson.Get(sb, "cmd").String()
 		// 新的弹幕 cmd 可能带参数
-		if strings.Contains(cmd, ":") {
-			index := strings.Index(cmd, ":")
-			cmd = cmd[:index]
+		ind := strings.Index(cmd, ":")
+		if ind != -1 {
+			cmd = cmd[:ind]
 		}
 		// 优先执行自定义 eventHandler ，会覆盖库内自带的 handler
 		f, ok := (*c.customEventHandlers)[cmd]
