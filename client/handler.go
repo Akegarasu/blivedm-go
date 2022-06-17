@@ -1,12 +1,10 @@
 package client
 
 import (
-	"bytes"
-	"fmt"
 	"github.com/Akegarasu/blivedm-go/message"
 	"github.com/Akegarasu/blivedm-go/packet"
+	"github.com/Akegarasu/blivedm-go/utils"
 	log "github.com/sirupsen/logrus"
-	"github.com/tidwall/gjson"
 	"runtime/debug"
 	"strings"
 )
@@ -60,12 +58,12 @@ func (c *Client) OnLive(f func(*message.Live)) {
 func (c *Client) Handle(p packet.Packet) {
 	switch p.Operation {
 	case packet.Notification:
-		sb := bytes.NewBuffer(p.Body).String()
-		cmd := gjson.Get(sb, "cmd").String()
+		cmd := parseCmd(p.Body)
+		sb := utils.BytesToString(p.Body)
 		// 新的弹幕 cmd 可能带参数
-		if strings.Contains(cmd, ":") {
-			index := strings.Index(cmd, ":")
-			cmd = cmd[:index]
+		ind := strings.Index(cmd, ":")
+		if ind != -1 {
+			cmd = cmd[:ind]
 		}
 		// 优先执行自定义 eventHandler ，会覆盖库内自带的 handler
 		f, ok := (*c.customEventHandlers)[cmd]
@@ -119,10 +117,24 @@ func (c *Client) Handle(p packet.Packet) {
 	}
 }
 
+func parseCmd(d []byte) string {
+	// {"cmd":"DANMU_MSG", ...
+	l := len(d)
+	pos := 8
+	s := byte('"')
+	for pos <= l {
+		if d[pos] == s {
+			break
+		}
+		pos++
+	}
+	return utils.BytesToString(d[8:pos])
+}
+
 func cover(f func()) {
 	defer func() {
 		if pan := recover(); pan != nil {
-			fmt.Printf("event error: %v\n%s", pan, debug.Stack())
+			log.Errorf("event error: %v\n%s", pan, debug.Stack())
 		}
 	}()
 	f()
