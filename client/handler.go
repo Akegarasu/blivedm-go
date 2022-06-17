@@ -1,11 +1,10 @@
 package client
 
 import (
-	"bytes"
 	"github.com/Akegarasu/blivedm-go/message"
 	"github.com/Akegarasu/blivedm-go/packet"
+	"github.com/Akegarasu/blivedm-go/utils"
 	log "github.com/sirupsen/logrus"
-	"github.com/tidwall/gjson"
 	"runtime/debug"
 	"strings"
 )
@@ -59,8 +58,8 @@ func (c *Client) OnLive(f func(*message.Live)) {
 func (c *Client) Handle(p packet.Packet) {
 	switch p.Operation {
 	case packet.Notification:
-		sb := bytes.NewBuffer(p.Body).String()
-		cmd := gjson.Get(sb, "cmd").String()
+		cmd := parseCmd(p.Body)
+		sb := utils.BytesToString(p.Body)
 		// 新的弹幕 cmd 可能带参数
 		ind := strings.Index(cmd, ":")
 		if ind != -1 {
@@ -116,6 +115,20 @@ func (c *Client) Handle(p packet.Packet) {
 			WithField("data", string(p.Body)).
 			Warn("unknown protover")
 	}
+}
+
+func parseCmd(d []byte) string {
+	// {"cmd":"DANMU_MSG", ...
+	l := len(d)
+	pos := 8
+	s := byte('"')
+	for pos <= l {
+		if d[pos] == s {
+			break
+		}
+		pos++
+	}
+	return utils.BytesToString(d[8:pos])
 }
 
 func cover(f func()) {
