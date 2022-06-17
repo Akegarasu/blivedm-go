@@ -61,8 +61,7 @@ func (c *Client) Handle(p packet.Packet) {
 		cmd := parseCmd(p.Body)
 		sb := utils.BytesToString(p.Body)
 		// 新的弹幕 cmd 可能带参数
-		ind := strings.Index(cmd, ":")
-		if ind != -1 {
+		if ind := strings.Index(cmd, ":"); ind >= 0 {
 			cmd = cmd[:ind]
 		}
 		// 优先执行自定义 eventHandler ，会覆盖库内自带的 handler
