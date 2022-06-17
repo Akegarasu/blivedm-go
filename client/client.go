@@ -145,6 +145,6 @@ func (c *Client) sendEnterPacket() error {
 	if err = c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
 		return err
 	}
-	log.Debugf("send: EnterPacket: %v", pkt)
+	log.Debugf("send: EnterPacket")
 	return nil
 }

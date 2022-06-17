@@ -122,7 +122,7 @@ func (c *Client) Handle(p packet.Packet) {
 func cover(f func()) {
 	defer func() {
 		if pan := recover(); pan != nil {
-			fmt.Printf("event error: %v\n%s", pan, debug.Stack())
+			log.Errorf("event error: %v\n%s", pan, debug.Stack())
 		}
 	}()
 	f()
