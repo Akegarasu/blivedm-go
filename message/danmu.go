@@ -65,27 +65,29 @@ func (d *Danmaku) Parse(data []byte) {
 	emo := new(Emoticon)
 	err := utils.UnmarshalString(info.Get("0.15.extra").String(), ext)
 	if err != nil {
-		log.Error("parse danmuku extra failed")
+		log.Error("parse danmaku extra failed")
 	}
 	err = utils.UnmarshalString(info.Get("0.13").String(), emo)
 	if err != nil {
-		log.Error("parse danmuku emoticon failed")
+		log.Error("parse danmaku emoticon failed")
 	}
+	i2 := info.Get("2")
+	i3 := info.Get("3")
 	d.Content = info.Get("1").String()
 	d.Sender = &User{
-		Uid:          int(info.Get("2.0").Int()),
-		Uname:        info.Get("2.1").String(),
-		Admin:        info.Get("2.2").Bool(),
-		Urank:        int(info.Get("2.5").Int()),
-		MobileVerify: info.Get("2.6").Bool(),
+		Uid:          int(i2.Get("0").Int()),
+		Uname:        i2.Get("1").String(),
+		Admin:        i2.Get("2").Bool(),
+		Urank:        int(i2.Get("5").Int()),
+		MobileVerify: i2.Get("6").Bool(),
 		GuardLevel:   int(info.Get("7").Int()),
 		Medal: &Medal{
-			Level:    int(info.Get("3.0").Int()),
-			Name:     info.Get("3.1").String(),
-			UpName:   info.Get("3.2").String(),
-			UpRoomId: int(info.Get("3.3").Int()),
-			Color:    int(info.Get("3.4").Int()),
-			UpUid:    int(info.Get("3.12").Int()),
+			Level:    int(i3.Get("0").Int()),
+			Name:     i3.Get("1").String(),
+			UpName:   i3.Get("2").String(),
+			UpRoomId: int(i3.Get("3").Int()),
+			Color:    int(i3.Get("4").Int()),
+			UpUid:    int(i3.Get("12").Int()),
 		},
 	}
 	d.Extra = ext
