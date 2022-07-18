@@ -15,7 +15,7 @@ import (
 type Client struct {
 	conn                *websocket.Conn
 	roomID              string
-	realRoomID          string
+	tempID              string
 	token               string
 	host                string
 	hostList            []string
@@ -28,7 +28,7 @@ type Client struct {
 func NewClient(roomID string) *Client {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Client{
-		roomID:              roomID,
+		tempID:              roomID,
 		eventHandlers:       &eventHandlers{},
 		customEventHandlers: &customEventHandlers{},
 		done:                ctx.Done(),
@@ -36,21 +36,19 @@ func NewClient(roomID string) *Client {
 	}
 }
 
-func (c *Client) Connect() error {
-	retryCount := 0
-	rid, _ := strconv.Atoi(c.roomID)
-	if rid <= 1000 && c.realRoomID == "" {
-		realID, err := api.GetRoomRealID(c.roomID)
+func (c *Client) init() error {
+	rid, _ := strconv.Atoi(c.tempID)
+	if rid <= 1000 && c.roomID == "" {
+		realID, err := api.GetRoomRealID(c.tempID)
 		if err != nil {
 			return err
 		}
 		c.roomID = realID
-		c.realRoomID = realID
 	} else {
-		c.realRoomID = c.roomID
+		c.roomID = c.tempID
 	}
 	if c.host == "" {
-		info, err := api.GetDanmuInfo(c.realRoomID)
+		info, err := api.GetDanmuInfo(c.roomID)
 		if err != nil {
 			c.hostList = []string{"broadcastlv.chat.bilibili.com"}
 		} else {
@@ -60,6 +58,11 @@ func (c *Client) Connect() error {
 		}
 		c.token = info.Data.Token
 	}
+	return nil
+}
+
+func (c *Client) connect() error {
+	retryCount := 0
 retry:
 	c.host = c.hostList[retryCount%len(c.hostList)]
 	retryCount++
@@ -78,7 +81,7 @@ retry:
 	return nil
 }
 
-func (c *Client) listen() {
+func (c *Client) wsLoop() {
 	for {
 		select {
 		case <-c.done:
@@ -89,7 +92,7 @@ func (c *Client) listen() {
 			if err != nil {
 				log.Info("reconnect")
 				time.Sleep(time.Duration(3) * time.Millisecond)
-				_ = c.Connect()
+				_ = c.connect()
 				continue
 			}
 			if msgType != websocket.BinaryMessage {
@@ -101,32 +104,6 @@ func (c *Client) listen() {
 			}
 		}
 	}
-}
-
-func (c *Client) Start() {
-	go c.listen()
-	go c.heartBeat()
-}
-
-func (c *Client) Stop() {
-	c.cancel()
-}
-
-func (c *Client) ConnectAndStart() error {
-	if err := c.Connect(); err != nil {
-		return err
-	}
-	c.Start()
-	return nil
-}
-
-func (c *Client) SetHost(host string) {
-	c.host = host
-}
-
-// UseDefaultHost 使用默认 host broadcastlv.chat.bilibili.com
-func (c *Client) UseDefaultHost() {
-	c.SetHost("broadcastlv.chat.bilibili.com")
 }
 
 func (c *Client) heartBeat() {
@@ -144,8 +121,33 @@ func (c *Client) heartBeat() {
 	}
 }
 
+func (c *Client) Start() error {
+	if err := c.init(); err != nil {
+		return err
+	}
+	if err := c.connect(); err != nil {
+		return err
+	}
+	go c.wsLoop()
+	go c.heartBeat()
+	return nil
+}
+
+func (c *Client) Stop() {
+	c.cancel()
+}
+
+func (c *Client) SetHost(host string) {
+	c.host = host
+}
+
+// UseDefaultHost 使用默认 host broadcastlv.chat.bilibili.com
+func (c *Client) UseDefaultHost() {
+	c.SetHost("broadcastlv.chat.bilibili.com")
+}
+
 func (c *Client) sendEnterPacket() error {
-	rid, err := strconv.Atoi(c.realRoomID)
+	rid, err := strconv.Atoi(c.roomID)
 	if err != nil {
 		return errors.New("error roomID")
 	}
