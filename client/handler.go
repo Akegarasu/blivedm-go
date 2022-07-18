@@ -31,26 +31,34 @@ func init() {
 	}
 }
 
+// RegisterCustomEventHandler 注册 自定义事件 的处理器
+//
+// 需要提供事件名，可参考 knownCMD
 func (c *Client) RegisterCustomEventHandler(cmd string, handler func(s string)) {
 	(*c.customEventHandlers)[cmd] = handler
 }
 
+// OnDanmaku 添加 弹幕事件 的处理器
 func (c *Client) OnDanmaku(f func(*message.Danmaku)) {
 	c.eventHandlers.danmakuMessageHandlers = append(c.eventHandlers.danmakuMessageHandlers, f)
 }
 
+// OnSuperChat 添加 醒目留言事件 的处理器
 func (c *Client) OnSuperChat(f func(*message.SuperChat)) {
 	c.eventHandlers.superChatHandlers = append(c.eventHandlers.superChatHandlers, f)
 }
 
+// OnGift 添加 礼物事件 的处理器
 func (c *Client) OnGift(f func(gift *message.Gift)) {
 	c.eventHandlers.giftHandlers = append(c.eventHandlers.giftHandlers, f)
 }
 
+// OnGuardBuy 添加 开通大航海事件 的处理器
 func (c *Client) OnGuardBuy(f func(*message.GuardBuy)) {
 	c.eventHandlers.guardBuyHandlers = append(c.eventHandlers.guardBuyHandlers, f)
 }
 
+// OnLive 添加 开播事件 的处理器
 func (c *Client) OnLive(f func(*message.Live)) {
 	c.eventHandlers.liveHandlers = append(c.eventHandlers.liveHandlers, f)
 }
