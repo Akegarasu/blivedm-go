@@ -18,6 +18,7 @@ type Client struct {
 	realRoomID          string
 	token               string
 	host                string
+	hostList            []string
 	eventHandlers       *eventHandlers
 	customEventHandlers *customEventHandlers
 	cancel              context.CancelFunc
@@ -36,6 +37,7 @@ func NewClient(roomID string) *Client {
 }
 
 func (c *Client) Connect() error {
+	retryCount := 0
 	rid, _ := strconv.Atoi(c.roomID)
 	if rid <= 1000 && c.realRoomID == "" {
 		realID, err := api.GetRoomRealID(c.roomID)
@@ -50,13 +52,18 @@ func (c *Client) Connect() error {
 	if c.host == "" {
 		info, err := api.GetDanmuInfo(c.realRoomID)
 		if err != nil {
-			return err
+			c.hostList = []string{"broadcastlv.chat.bilibili.com"}
+		} else {
+			for _, h := range info.Data.HostList {
+				c.hostList = append(c.hostList, h.Host)
+			}
 		}
-		c.host = fmt.Sprintf("wss://%s/sub", info.Data.HostList[0].Host)
 		c.token = info.Data.Token
 	}
 retry:
-	conn, res, err := websocket.DefaultDialer.Dial(c.host, nil)
+	c.host = c.hostList[retryCount%len(c.hostList)]
+	retryCount++
+	conn, res, err := websocket.DefaultDialer.Dial(fmt.Sprintf("wss://%s/sub", c.host), nil)
 	if err != nil {
 		log.Error("connect dial failed, retry...")
 		time.Sleep(2 * time.Second)
@@ -117,8 +124,9 @@ func (c *Client) SetHost(host string) {
 	c.host = host
 }
 
+// UseDefaultHost 使用默认 host broadcastlv.chat.bilibili.com
 func (c *Client) UseDefaultHost() {
-	c.SetHost("wss://broadcastlv.chat.bilibili.com/sub")
+	c.SetHost("broadcastlv.chat.bilibili.com")
 }
 
 func (c *Client) heartBeat() {
