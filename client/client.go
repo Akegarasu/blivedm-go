@@ -25,6 +25,7 @@ type Client struct {
 	done                <-chan struct{}
 }
 
+// NewClient 创建一个新的弹幕 client
 func NewClient(roomID string) *Client {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Client{
@@ -36,8 +37,10 @@ func NewClient(roomID string) *Client {
 	}
 }
 
+// init 初始化 获取真实 roomID 和 弹幕服务器 host
 func (c *Client) init() error {
 	rid, _ := strconv.Atoi(c.tempID)
+	// 处理 shortID
 	if rid <= 1000 && c.roomID == "" {
 		realID, err := api.GetRoomRealID(c.tempID)
 		if err != nil {
@@ -64,18 +67,19 @@ func (c *Client) init() error {
 func (c *Client) connect() error {
 	retryCount := 0
 retry:
+	// 随着重连会自动切换弹幕服务器
 	c.host = c.hostList[retryCount%len(c.hostList)]
 	retryCount++
 	conn, res, err := websocket.DefaultDialer.Dial(fmt.Sprintf("wss://%s/sub", c.host), nil)
 	if err != nil {
-		log.Error("connect dial failed, retry...")
+		log.Errorf("connect dial failed, retry %d times", retryCount)
 		time.Sleep(2 * time.Second)
 		goto retry
 	}
 	c.conn = conn
 	res.Body.Close()
 	if err = c.sendEnterPacket(); err != nil {
-		log.Error("connect enter packet send failed, retry...")
+		log.Errorf("failed to send enter packet, retry %d times", retryCount)
 		goto retry
 	}
 	return nil
@@ -96,7 +100,7 @@ func (c *Client) wsLoop() {
 				continue
 			}
 			if msgType != websocket.BinaryMessage {
-				log.Error("packet not binary", data)
+				log.Error("packet not binary")
 				continue
 			}
 			for _, pkt := range packet.DecodePacket(data).Parse() {
@@ -106,7 +110,7 @@ func (c *Client) wsLoop() {
 	}
 }
 
-func (c *Client) heartBeat() {
+func (c *Client) heartBeatLoop() {
 	pkt := packet.NewHeartBeatPacket()
 	for {
 		select {
@@ -129,7 +133,7 @@ func (c *Client) Start() error {
 		return err
 	}
 	go c.wsLoop()
-	go c.heartBeat()
+	go c.heartBeatLoop()
 	return nil
 }
 
@@ -143,7 +147,7 @@ func (c *Client) SetHost(host string) {
 
 // UseDefaultHost 使用默认 host broadcastlv.chat.bilibili.com
 func (c *Client) UseDefaultHost() {
-	c.SetHost("broadcastlv.chat.bilibili.com")
+	c.host = "broadcastlv.chat.bilibili.com"
 }
 
 func (c *Client) sendEnterPacket() error {
