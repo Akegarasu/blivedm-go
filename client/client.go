@@ -125,6 +125,7 @@ func (c *Client) heartBeatLoop() {
 	}
 }
 
+// Start 启动弹幕 Client 初始化并连接 ws、发送心跳包
 func (c *Client) Start() error {
 	if err := c.init(); err != nil {
 		return err
@@ -137,6 +138,7 @@ func (c *Client) Start() error {
 	return nil
 }
 
+// Stop 停止弹幕 Client
 func (c *Client) Stop() {
 	c.cancel()
 }
