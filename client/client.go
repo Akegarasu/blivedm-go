@@ -149,7 +149,7 @@ func (c *Client) SetHost(host string) {
 
 // UseDefaultHost 使用默认 host broadcastlv.chat.bilibili.com
 func (c *Client) UseDefaultHost() {
-	c.host = "broadcastlv.chat.bilibili.com"
+	c.hostList = []string{"broadcastlv.chat.bilibili.com"}
 }
 
 func (c *Client) sendEnterPacket() error {
