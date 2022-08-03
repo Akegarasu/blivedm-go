@@ -15,7 +15,7 @@ import (
 type Client struct {
 	conn                *websocket.Conn
 	roomID              string
-	realRoomID          string
+	tempID              string
 	token               string
 	host                string
 	hostList            []string
@@ -25,10 +25,11 @@ type Client struct {
 	done                <-chan struct{}
 }
 
+// NewClient 创建一个新的弹幕 client
 func NewClient(roomID string) *Client {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Client{
-		roomID:              roomID,
+		tempID:              roomID,
 		eventHandlers:       &eventHandlers{},
 		customEventHandlers: &customEventHandlers{},
 		done:                ctx.Done(),
@@ -36,21 +37,21 @@ func NewClient(roomID string) *Client {
 	}
 }
 
-func (c *Client) Connect() error {
-	retryCount := 0
-	rid, _ := strconv.Atoi(c.roomID)
-	if rid <= 1000 && c.realRoomID == "" {
-		realID, err := api.GetRoomRealID(c.roomID)
+// init 初始化 获取真实 roomID 和 弹幕服务器 host
+func (c *Client) init() error {
+	rid, _ := strconv.Atoi(c.tempID)
+	// 处理 shortID
+	if rid <= 1000 && c.roomID == "" {
+		realID, err := api.GetRoomRealID(c.tempID)
 		if err != nil {
 			return err
 		}
 		c.roomID = realID
-		c.realRoomID = realID
 	} else {
-		c.realRoomID = c.roomID
+		c.roomID = c.tempID
 	}
 	if c.host == "" {
-		info, err := api.GetDanmuInfo(c.realRoomID)
+		info, err := api.GetDanmuInfo(c.roomID)
 		if err != nil {
 			c.hostList = []string{"broadcastlv.chat.bilibili.com"}
 		} else {
@@ -60,25 +61,31 @@ func (c *Client) Connect() error {
 		}
 		c.token = info.Data.Token
 	}
+	return nil
+}
+
+func (c *Client) connect() error {
+	retryCount := 0
 retry:
+	// 随着重连会自动切换弹幕服务器
 	c.host = c.hostList[retryCount%len(c.hostList)]
 	retryCount++
 	conn, res, err := websocket.DefaultDialer.Dial(fmt.Sprintf("wss://%s/sub", c.host), nil)
 	if err != nil {
-		log.Error("connect dial failed, retry...")
+		log.Errorf("connect dial failed, retry %d times", retryCount)
 		time.Sleep(2 * time.Second)
 		goto retry
 	}
 	c.conn = conn
 	res.Body.Close()
 	if err = c.sendEnterPacket(); err != nil {
-		log.Error("connect enter packet send failed, retry...")
+		log.Errorf("failed to send enter packet, retry %d times", retryCount)
 		goto retry
 	}
 	return nil
 }
 
-func (c *Client) listen() {
+func (c *Client) wsLoop() {
 	for {
 		select {
 		case <-c.done:
@@ -89,11 +96,11 @@ func (c *Client) listen() {
 			if err != nil {
 				log.Info("reconnect")
 				time.Sleep(time.Duration(3) * time.Millisecond)
-				_ = c.Connect()
+				_ = c.connect()
 				continue
 			}
 			if msgType != websocket.BinaryMessage {
-				log.Error("packet not binary", data)
+				log.Error("packet not binary")
 				continue
 			}
 			for _, pkt := range packet.DecodePacket(data).Parse() {
@@ -103,33 +110,7 @@ func (c *Client) listen() {
 	}
 }
 
-func (c *Client) Start() {
-	go c.listen()
-	go c.heartBeat()
-}
-
-func (c *Client) Stop() {
-	c.cancel()
-}
-
-func (c *Client) ConnectAndStart() error {
-	if err := c.Connect(); err != nil {
-		return err
-	}
-	c.Start()
-	return nil
-}
-
-func (c *Client) SetHost(host string) {
-	c.host = host
-}
-
-// UseDefaultHost 使用默认 host broadcastlv.chat.bilibili.com
-func (c *Client) UseDefaultHost() {
-	c.SetHost("broadcastlv.chat.bilibili.com")
-}
-
-func (c *Client) heartBeat() {
+func (c *Client) heartBeatLoop() {
 	pkt := packet.NewHeartBeatPacket()
 	for {
 		select {
@@ -144,8 +125,35 @@ func (c *Client) heartBeat() {
 	}
 }
 
+// Start 启动弹幕 Client 初始化并连接 ws、发送心跳包
+func (c *Client) Start() error {
+	if err := c.init(); err != nil {
+		return err
+	}
+	if err := c.connect(); err != nil {
+		return err
+	}
+	go c.wsLoop()
+	go c.heartBeatLoop()
+	return nil
+}
+
+// Stop 停止弹幕 Client
+func (c *Client) Stop() {
+	c.cancel()
+}
+
+func (c *Client) SetHost(host string) {
+	c.host = host
+}
+
+// UseDefaultHost 使用默认 host broadcastlv.chat.bilibili.com
+func (c *Client) UseDefaultHost() {
+	c.hostList = []string{"broadcastlv.chat.bilibili.com"}
+}
+
 func (c *Client) sendEnterPacket() error {
-	rid, err := strconv.Atoi(c.realRoomID)
+	rid, err := strconv.Atoi(c.roomID)
 	if err != nil {
 		return errors.New("error roomID")
 	}

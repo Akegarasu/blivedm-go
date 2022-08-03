@@ -1,30 +1,8 @@
-# blivedm-go
-
-bilibili 直播弹幕 golang 库
-
-**注意：此分支为V3重构部分api的版本，使用例子请看 example**
-
-## 安装
-```shell
-go get github.com/Akegarasu/blivedm-go
-```
-
-## 快速开始
-
-### 基础使用
-
-该库支持以下几种基本事件，并且支持监听自定义事件。
-- 弹幕
-- 醒目留言
-- 礼物
-- 上舰
-- 开播
-
-```go
 package main
 
 import (
 	"fmt"
+	"github.com/Akegarasu/blivedm-go/api"
 	"github.com/Akegarasu/blivedm-go/client"
 	"github.com/Akegarasu/blivedm-go/message"
 	_ "github.com/Akegarasu/blivedm-go/utils"
@@ -72,36 +50,23 @@ func main() {
 	select {}
 }
 
-```
-
-### 进阶使用
-
-#### 监听自定义事件
-
-通过自定义监听事件，可以支持更多事件处理。  
-其中，`cmd`为要监听的`cmd`名（下附常见`cmd`名）， `handler`为接收事件消息（字符串的JSON）的函数  
-**注意**  
-优先执行自定义 eventHandler ，会**覆盖库内自带的 handler**  
-例如，如果你`RegisterCustomEventHandler("DANMU_MSG", ...`  
-那么你使用`OnDanmaku`则不会再生效
-```go
-func (c *Client) RegisterCustomEventHandler(cmd string, handler func(s string))
-```
-```go
-// 监听自定义事件
-c.RegisterCustomEventHandler("STOP_LIVE_ROOM_LIST", func(s string) {
-    data := gjson.Get(s, "data").String()
-    fmt.Printf(data)
-})
-```
-
-### 常见 CMD
-注：来自blivedm
-```python
-cmd = (
-        'INTERACT_WORD', 'ROOM_BANNER', 'ROOM_REAL_TIME_MESSAGE_UPDATE', 'NOTICE_MSG', 'COMBO_SEND',
-        'COMBO_END', 'ENTRY_EFFECT', 'WELCOME_GUARD', 'WELCOME', 'ROOM_RANK', 'ACTIVITY_BANNER_UPDATE_V2',
-        'PANEL', 'SUPER_CHAT_MESSAGE_JPN', 'USER_TOAST_MSG', 'ROOM_BLOCK_MSG', 'LIVE', 'PREPARING',
-        'room_admin_entrance', 'ROOM_ADMINS', 'ROOM_CHANGE'
-    )
-```
+func sendDanmaku() error {
+	dmReq := &api.DanmakuRequest{
+		Msg:      "official_13",
+		RoomID:   "732",
+		Bubble:   "0",
+		Color:    "16777215",
+		FontSize: "25",
+		Mode:     "1",
+		DmType:   "1",
+	}
+	d, err := api.SendDanmaku(dmReq, &api.BiliVerify{
+		Csrf:     "",
+		SessData: "",
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Println(d)
+	return nil
+}

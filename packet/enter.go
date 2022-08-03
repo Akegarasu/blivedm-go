@@ -16,7 +16,7 @@ type Enter struct {
 }
 
 // NewEnterPacket 构造进入房间的包
-// uid可以为0，key不需要
+// uid 可以为 0, key 在使用 broadcastlv 服务器的时候不需要
 func NewEnterPacket(uid int, roomID int, key string) []byte {
 	ent := &Enter{
 		UID:       uid,
@@ -28,8 +28,7 @@ func NewEnterPacket(uid int, roomID int, key string) []byte {
 		Key:       key,
 	}
 	pkt := NewPlainPacket(RoomEnter, ent.Json())
-	upkt := pkt.Build()
-	return upkt
+	return pkt.Build()
 }
 
 func (e *Enter) Json() []byte {

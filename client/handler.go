@@ -63,6 +63,7 @@ func (c *Client) OnLive(f func(*message.Live)) {
 	c.eventHandlers.liveHandlers = append(c.eventHandlers.liveHandlers, f)
 }
 
+// Handle 处理一个包
 func (c *Client) Handle(p packet.Packet) {
 	switch p.Operation {
 	case packet.Notification:
@@ -124,6 +125,7 @@ func (c *Client) Handle(p packet.Packet) {
 	}
 }
 
+// parseCmd 获取 JSON 报文的 CMD
 func parseCmd(d []byte) string {
 	// {"cmd":"DANMU_MSG", ...
 	l := len(d)
