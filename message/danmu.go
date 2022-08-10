@@ -63,11 +63,11 @@ func (d *Danmaku) Parse(data []byte) {
 	info := gjson.Parse(sb).Get("info")
 	ext := new(Extra)
 	emo := new(Emoticon)
-	err := utils.UnmarshalString(info.Get("0.15.extra").String(), ext)
+	err := utils.UnmarshalStr(info.Get("0.15.extra").String(), ext)
 	if err != nil {
 		log.Error("parse danmaku extra failed")
 	}
-	err = utils.UnmarshalString(info.Get("0.13").String(), emo)
+	err = utils.UnmarshalStr(info.Get("0.13").String(), emo)
 	if err != nil {
 		log.Error("parse danmaku emoticon failed")
 	}

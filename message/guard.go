@@ -21,7 +21,7 @@ type GuardBuy struct {
 func (g *GuardBuy) Parse(data []byte) {
 	sb := utils.BytesToString(data)
 	sd := gjson.Get(sb, "data").String()
-	err := utils.UnmarshalString(sd, g)
+	err := utils.UnmarshalStr(sd, g)
 	if err != nil {
 		log.Error("parse GuardBuy failed")
 	}
