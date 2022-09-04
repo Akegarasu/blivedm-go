@@ -27,14 +27,10 @@ func NewEnterPacket(uid int, roomID int, key string) []byte {
 		Type:      2,
 		Key:       key,
 	}
-	pkt := NewPlainPacket(RoomEnter, ent.Json())
-	return pkt.Build()
-}
-
-func (e *Enter) Json() []byte {
-	marshal, err := json.Marshal(e)
+	m, err := json.Marshal(ent)
 	if err != nil {
 		log.Error("NewEnterPacket JsonMarshal failed", err)
 	}
-	return marshal
+	pkt := NewPlainPacket(RoomEnter, m)
+	return pkt.Build()
 }

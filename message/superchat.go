@@ -73,7 +73,7 @@ type SuperChat struct {
 func (s *SuperChat) Parse(data []byte) {
 	sb := utils.BytesToString(data)
 	sd := gjson.Get(sb, "data").String()
-	err := utils.UnmarshalString(sd, s)
+	err := utils.UnmarshalStr(sd, s)
 	if err != nil {
 		log.Error("parse superchat failed")
 	}
