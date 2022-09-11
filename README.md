@@ -19,6 +19,7 @@ go get github.com/Akegarasu/blivedm-go
 - 礼物
 - 上舰
 - 开播
+- USER_TOAST_MSG
 
 ```go
 package main
