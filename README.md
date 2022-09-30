@@ -2,8 +2,6 @@
 
 bilibili 直播弹幕 golang 库
 
-**注意：此分支为V3重构部分api的版本，使用例子请看 example**
-
 ## 安装
 ```shell
 go get github.com/Akegarasu/blivedm-go
