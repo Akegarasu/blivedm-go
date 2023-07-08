@@ -4,16 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/Akegarasu/blivedm-go/api"
 	"github.com/Akegarasu/blivedm-go/packet"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
-	"strconv"
-	"time"
 )
 
 type Client struct {
 	conn                *websocket.Conn
+	uid                 int
 	roomID              string
 	tempID              string
 	token               string
@@ -26,10 +28,11 @@ type Client struct {
 }
 
 // NewClient 创建一个新的弹幕 client
-func NewClient(roomID string) *Client {
+func NewClient(roomID string, uid int) *Client {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Client{
 		tempID:              roomID,
+		uid:                 uid,
 		eventHandlers:       &eventHandlers{},
 		customEventHandlers: &customEventHandlers{},
 		done:                ctx.Done(),
@@ -157,7 +160,7 @@ func (c *Client) sendEnterPacket() error {
 	if err != nil {
 		return errors.New("error roomID")
 	}
-	pkt := packet.NewEnterPacket(0, rid, c.token)
+	pkt := packet.NewEnterPacket(c.uid, rid, c.token)
 	if err = c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
 		return err
 	}
