@@ -10,7 +10,7 @@ import (
 )
 
 const roomId = "8792912"
-const uid = 745493
+const uid = "745493"
 
 var dumps = []string{"GUARD_BUY", "USER_TOAST_MSG"}
 

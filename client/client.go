@@ -15,7 +15,7 @@ import (
 
 type Client struct {
 	conn                *websocket.Conn
-	uid                 int
+	uid                 string
 	roomID              string
 	tempID              string
 	token               string
@@ -28,7 +28,7 @@ type Client struct {
 }
 
 // NewClient 创建一个新的弹幕 client
-func NewClient(roomID string, uid int) *Client {
+func NewClient(roomID string, uid string) *Client {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Client{
 		tempID:              roomID,
@@ -160,7 +160,11 @@ func (c *Client) sendEnterPacket() error {
 	if err != nil {
 		return errors.New("error roomID")
 	}
-	pkt := packet.NewEnterPacket(c.uid, rid, c.token)
+	uid, err := strconv.Atoi(c.uid)
+	if err != nil {
+		return errors.New("error roomID")
+	}
+	pkt := packet.NewEnterPacket(uid, rid, c.token)
 	if err = c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
 		return err
 	}

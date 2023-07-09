@@ -33,7 +33,7 @@ import (
 
 func main() {
 	log.SetLevel(log.DebugLevel)
-	c := client.NewClient("732", 194484313) // 732为房间号，194484313为UID
+	c := client.NewClient("732", "194484313") // 732为房间号，194484313为UID
 	//弹幕事件
 	c.OnDanmaku(func(danmaku *message.Danmaku) {
 		if danmaku.Type == message.EmoticonDanmaku {
