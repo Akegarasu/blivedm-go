@@ -1,9 +1,11 @@
 package message
 
 import (
+	"github.com/Akegarasu/blivedm-go/pb"
 	"github.com/Akegarasu/blivedm-go/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -60,7 +62,9 @@ type (
 
 func (d *Danmaku) Parse(data []byte) {
 	sb := utils.BytesToString(data)
-	info := gjson.Parse(sb).Get("info")
+	parsed := gjson.Parse(sb)
+	info := parsed.Get("info")
+
 	ext := new(Extra)
 	emo := new(Emoticon)
 	err := utils.UnmarshalStr(info.Get("0.15.extra").String(), ext)
@@ -95,4 +99,17 @@ func (d *Danmaku) Parse(data []byte) {
 	d.Type = int(info.Get("0.12").Int())
 	d.Timestamp = info.Get("0.4").Int()
 	d.Raw = sb
+
+	dmv2Content := parsed.Get("dm_v2").String()
+	if dmv2Content != "" {
+		decoded, _ := utils.B64Decode(dmv2Content)
+		dmv2 := new(pb.Dm)
+
+		err := proto.Unmarshal(decoded, dmv2)
+		if err != nil {
+			return
+		}
+		d.Content = dmv2.Content
+	}
+
 }

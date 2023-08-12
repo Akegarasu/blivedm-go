@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -68,12 +69,14 @@ func (c *Client) init() error {
 }
 
 func (c *Client) connect() error {
+	reqHeader := &http.Header{}
+	reqHeader.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36")
 	retryCount := 0
 retry:
 	// 随着重连会自动切换弹幕服务器
 	c.host = c.hostList[retryCount%len(c.hostList)]
 	retryCount++
-	conn, res, err := websocket.DefaultDialer.Dial(fmt.Sprintf("wss://%s/sub", c.host), nil)
+	conn, res, err := websocket.DefaultDialer.Dial(fmt.Sprintf("wss://%s/sub", c.host), *reqHeader)
 	if err != nil {
 		log.Errorf("connect dial failed, retry %d times", retryCount)
 		time.Sleep(2 * time.Second)

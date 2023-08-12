@@ -8,4 +8,5 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/tidwall/gjson v1.13.0
 	golang.org/x/sys v0.0.0-20210423082822-04245dca01da // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 )
