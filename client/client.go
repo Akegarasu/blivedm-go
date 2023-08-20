@@ -43,16 +43,18 @@ func NewClient(roomID string, uid string) *Client {
 
 // init 初始化 获取真实 roomID 和 弹幕服务器 host
 func (c *Client) init() error {
-	rid, _ := strconv.Atoi(c.tempID)
-	// 处理 shortID
-	if rid <= 1000 && c.roomID == "" {
-		realID, err := api.GetRoomRealID(c.tempID)
-		if err != nil {
-			return err
-		}
-		c.roomID = realID
-	} else {
+	roomInfo, err := api.GetRoomInfo(c.tempID)
+	// 失败降级
+	if err != nil || roomInfo.Code != 0 {
+		log.Errorf("room=%s init GetRoomInfo fialed, %s", c.tempID, err)
 		c.roomID = c.tempID
+		if c.uid == "" {
+			c.uid = "208259" // 叔叔的 UID
+		}
+	}
+	c.roomID = strconv.Itoa(roomInfo.Data.RoomId)
+	if c.uid == "" {
+		c.uid = strconv.Itoa(roomInfo.Data.Uid)
 	}
 	if c.host == "" {
 		info, err := api.GetDanmuInfo(c.roomID)
@@ -100,7 +102,7 @@ func (c *Client) wsLoop() {
 		default:
 			msgType, data, err := c.conn.ReadMessage()
 			if err != nil {
-				log.Info("reconnect")
+				log.Error("ws message read failed, reconnecting")
 				time.Sleep(time.Duration(3) * time.Millisecond)
 				_ = c.connect()
 				continue
@@ -165,7 +167,7 @@ func (c *Client) sendEnterPacket() error {
 	}
 	uid, err := strconv.Atoi(c.uid)
 	if err != nil {
-		return errors.New("error roomID")
+		return errors.New("error UID")
 	}
 	pkt := packet.NewEnterPacket(uid, rid, c.token)
 	if err = c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
