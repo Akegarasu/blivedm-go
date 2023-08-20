@@ -49,7 +49,7 @@ func NewPacket(protocolVersion uint16, operation uint32, body []byte) Packet {
 // NewPlainPacket 构造新的 Plain 包
 // 对外暴露的方法中 operation 全部使用int
 func NewPlainPacket(operation int, body []byte) Packet {
-	return NewPacket(Plain, uint32(operation), body)
+	return NewPacket(1, uint32(operation), body)
 }
 
 func NewPacketFromBytes(data []byte) Packet {

@@ -22,6 +22,7 @@ type Client struct {
 	token               string
 	host                string
 	hostList            []string
+	retryCount          int
 	eventHandlers       *eventHandlers
 	customEventHandlers *customEventHandlers
 	cancel              context.CancelFunc
@@ -34,6 +35,7 @@ func NewClient(roomID string, uid string) *Client {
 	return &Client{
 		tempID:              roomID,
 		uid:                 uid,
+		retryCount:          0,
 		eventHandlers:       &eventHandlers{},
 		customEventHandlers: &customEventHandlers{},
 		done:                ctx.Done(),
@@ -73,21 +75,20 @@ func (c *Client) init() error {
 func (c *Client) connect() error {
 	reqHeader := &http.Header{}
 	reqHeader.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36")
-	retryCount := 0
 retry:
-	// 随着重连会自动切换弹幕服务器
-	c.host = c.hostList[retryCount%len(c.hostList)]
-	retryCount++
+	c.host = c.hostList[c.retryCount%len(c.hostList)]
+	c.retryCount++
 	conn, res, err := websocket.DefaultDialer.Dial(fmt.Sprintf("wss://%s/sub", c.host), *reqHeader)
 	if err != nil {
-		log.Errorf("connect dial failed, retry %d times", retryCount)
+		log.Errorf("connect dial failed, retry %d times", c.retryCount)
 		time.Sleep(2 * time.Second)
 		goto retry
 	}
 	c.conn = conn
 	res.Body.Close()
 	if err = c.sendEnterPacket(); err != nil {
-		log.Errorf("failed to send enter packet, retry %d times", retryCount)
+		log.Errorf("failed to send enter packet, retry %d times", c.retryCount)
+		time.Sleep(2 * time.Second)
 		goto retry
 	}
 	return nil

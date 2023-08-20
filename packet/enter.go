@@ -9,7 +9,6 @@ type Enter struct {
 	UID      int    `json:"uid"`
 	RoomID   int    `json:"roomid"`
 	ProtoVer int    `json:"protover"`
-	Buvid    string `json:"buvid"`
 	Platform string `json:"platform"`
 	Type     int    `json:"type"`
 	Key      string `json:"key"`
