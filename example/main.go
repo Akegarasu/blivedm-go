@@ -13,8 +13,8 @@ import (
 
 func main() {
 	log.SetLevel(log.DebugLevel)
-	c := client.NewClient("23555200", "194484313")
-	c.UseDefaultHost()
+	c := client.NewClient("6")
+	c.SetCookie("this is a example cookie.")
 	//弹幕事件
 	c.OnDanmaku(func(danmaku *message.Danmaku) {
 		if danmaku.Type == message.EmoticonDanmaku {

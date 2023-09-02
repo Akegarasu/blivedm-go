@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -16,9 +17,10 @@ import (
 
 type Client struct {
 	conn                *websocket.Conn
-	uid                 string
-	roomID              string
-	tempID              string
+	Uid                 string
+	Buvid               string
+	RoomID              string
+	Cookie              string
 	token               string
 	host                string
 	hostList            []string
@@ -30,11 +32,10 @@ type Client struct {
 }
 
 // NewClient 创建一个新的弹幕 client
-func NewClient(roomID string, uid string) *Client {
+func NewClient(roomID string) *Client {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Client{
-		tempID:              roomID,
-		uid:                 uid,
+		RoomID:              roomID,
 		retryCount:          0,
 		eventHandlers:       &eventHandlers{},
 		customEventHandlers: &customEventHandlers{},
@@ -43,23 +44,34 @@ func NewClient(roomID string, uid string) *Client {
 	}
 }
 
-// init 初始化 获取真实 roomID 和 弹幕服务器 host
+func (c *Client) SetCookie(cookie string) {
+	c.Cookie = cookie
+}
+
+// init 初始化 获取真实 RoomID 和 弹幕服务器 host
 func (c *Client) init() error {
-	roomInfo, err := api.GetRoomInfo(c.tempID)
-	// 失败降级
-	if err != nil || roomInfo.Code != 0 {
-		log.Errorf("room=%s init GetRoomInfo fialed, %s", c.tempID, err)
-		c.roomID = c.tempID
-		if c.uid == "" {
-			c.uid = "208259" // 叔叔的 UID
+	if c.Cookie != "" {
+		uid, err := api.GetUid(c.Cookie)
+		if err != nil {
+			if c.Uid == "" {
+				c.Uid = "0"
+			}
+		}
+		c.Uid = uid
+		re := regexp.MustCompile("_uuid=(.+?);")
+		result := re.FindAllStringSubmatch(c.Cookie, -1)
+		if len(result) > 0 {
+			c.Buvid = result[0][1]
 		}
 	}
-	c.roomID = strconv.Itoa(roomInfo.Data.RoomId)
-	if c.uid == "" {
-		c.uid = strconv.Itoa(roomInfo.Data.Uid)
+	roomInfo, err := api.GetRoomInfo(c.RoomID)
+	// 失败降级
+	if err != nil || roomInfo.Code != 0 {
+		log.Errorf("room=%s init GetRoomInfo fialed, %s", c.RoomID, err)
 	}
+	c.RoomID = strconv.Itoa(roomInfo.Data.RoomId)
 	if c.host == "" {
-		info, err := api.GetDanmuInfo(c.roomID)
+		info, err := api.GetDanmuInfo(c.RoomID, c.Cookie)
 		if err != nil {
 			c.hostList = []string{"broadcastlv.chat.bilibili.com"}
 		} else {
@@ -85,7 +97,7 @@ retry:
 		goto retry
 	}
 	c.conn = conn
-	res.Body.Close()
+	_ = res.Body.Close()
 	if err = c.sendEnterPacket(); err != nil {
 		log.Errorf("failed to send enter packet, retry %d times", c.retryCount)
 		time.Sleep(2 * time.Second)
@@ -162,15 +174,15 @@ func (c *Client) UseDefaultHost() {
 }
 
 func (c *Client) sendEnterPacket() error {
-	rid, err := strconv.Atoi(c.roomID)
+	rid, err := strconv.Atoi(c.RoomID)
 	if err != nil {
-		return errors.New("error roomID")
+		return errors.New("error RoomID")
 	}
-	uid, err := strconv.Atoi(c.uid)
+	uid, err := strconv.Atoi(c.Uid)
 	if err != nil {
 		return errors.New("error UID")
 	}
-	pkt := packet.NewEnterPacket(uid, rid, c.token)
+	pkt := packet.NewEnterPacket(uid, c.Buvid, rid, c.token)
 	if err = c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
 		return err
 	}

@@ -7,6 +7,7 @@ import (
 
 type Enter struct {
 	UID      int    `json:"uid"`
+	Buvid    string `json:"buvid"`
 	RoomID   int    `json:"roomid"`
 	ProtoVer int    `json:"protover"`
 	Platform string `json:"platform"`
@@ -16,9 +17,10 @@ type Enter struct {
 
 // NewEnterPacket 构造进入房间的包
 // uid 可以为 0, key 在使用 broadcastlv 服务器的时候不需要
-func NewEnterPacket(uid int, roomID int, key string) []byte {
+func NewEnterPacket(uid int, buvid string, roomID int, key string) []byte {
 	ent := &Enter{
 		UID:      uid,
+		Buvid:    buvid,
 		RoomID:   roomID,
 		ProtoVer: 3,
 		Platform: "web",
