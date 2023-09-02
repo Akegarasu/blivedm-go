@@ -33,7 +33,8 @@ import (
 
 func main() {
 	log.SetLevel(log.DebugLevel)
-	c := client.NewClient("732", "194484313") // 732为房间号，194484313为UID
+	c := client.NewClient("732") // 732为房间号
+	c.SetCookie("") // 由于 B站 反爬虫改版，现在需要使用已登陆账号的 Cookie 才可以正常获取弹幕。如果不设置 Cookie，获取到的弹幕昵称、UID都被限制。还有可能弹幕限流，无法获取到全部内容。
 	//弹幕事件
 	c.OnDanmaku(func(danmaku *message.Danmaku) {
 		if danmaku.Type == message.EmoticonDanmaku {
