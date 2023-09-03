@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Akegarasu/blivedm-go/api"
@@ -17,9 +17,9 @@ import (
 
 type Client struct {
 	conn                *websocket.Conn
-	Uid                 string
+	RoomID              int
+	Uid                 int
 	Buvid               string
-	RoomID              string
 	Cookie              string
 	token               string
 	host                string
@@ -32,7 +32,7 @@ type Client struct {
 }
 
 // NewClient 创建一个新的弹幕 client
-func NewClient(roomID string) *Client {
+func NewClient(roomID int) *Client {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Client{
 		RoomID:              roomID,
@@ -51,11 +51,13 @@ func (c *Client) SetCookie(cookie string) {
 // init 初始化 获取真实 RoomID 和 弹幕服务器 host
 func (c *Client) init() error {
 	if c.Cookie != "" {
+		if !strings.Contains(c.Cookie, "bili_jct") || !strings.Contains(c.Cookie, "SESSDATA") {
+			log.Errorf("cannot found account token")
+			return errors.New("账号未登录")
+		}
 		uid, err := api.GetUid(c.Cookie)
 		if err != nil {
-			if c.Uid == "" {
-				c.Uid = "0"
-			}
+			log.Error(err)
 		}
 		c.Uid = uid
 		re := regexp.MustCompile("_uuid=(.+?);")
@@ -69,7 +71,7 @@ func (c *Client) init() error {
 	if err != nil || roomInfo.Code != 0 {
 		log.Errorf("room=%s init GetRoomInfo fialed, %s", c.RoomID, err)
 	}
-	c.RoomID = strconv.Itoa(roomInfo.Data.RoomId)
+	c.RoomID = roomInfo.Data.RoomId
 	if c.host == "" {
 		info, err := api.GetDanmuInfo(c.RoomID, c.Cookie)
 		if err != nil {
@@ -174,16 +176,8 @@ func (c *Client) UseDefaultHost() {
 }
 
 func (c *Client) sendEnterPacket() error {
-	rid, err := strconv.Atoi(c.RoomID)
-	if err != nil {
-		return errors.New("error RoomID")
-	}
-	uid, err := strconv.Atoi(c.Uid)
-	if err != nil {
-		return errors.New("error UID")
-	}
-	pkt := packet.NewEnterPacket(uid, c.Buvid, rid, c.token)
-	if err = c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
+	pkt := packet.NewEnterPacket(c.Uid, c.Buvid, c.RoomID, c.token)
+	if err := c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
 		return err
 	}
 	log.Debugf("send: EnterPacket")

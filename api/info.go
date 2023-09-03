@@ -165,41 +165,41 @@ type UserInfo struct {
 	} `json:"data"`
 }
 
-func GetUid(cookie string) (string, error) {
+func GetUid(cookie string) (int, error) {
 	result := &UserInfo{}
 	headers := &http.Header{}
 	headers.Set("cookie", cookie)
 	err := GetJsonWithHeader("https://api.bilibili.com/x/web-interface/nav", headers, result)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 	if result.Code != 0 || !result.Data.IsLogin {
-		return "", errors.New("")
+		return 0, errors.New(result.Message)
 	}
-	return strconv.Itoa(result.Data.Mid), nil
+	return result.Data.Mid, nil
 }
 
-func GetDanmuInfo(roomID string, cookie string) (*DanmuInfo, error) {
+func GetDanmuInfo(roomID int, cookie string) (*DanmuInfo, error) {
 	result := &DanmuInfo{}
 	headers := &http.Header{}
 	headers.Set("cookie", cookie)
-	err := GetJsonWithHeader(fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id=%s&type=0", roomID), headers, result)
+	err := GetJsonWithHeader(fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id=%d&type=0", roomID), headers, result)
 	if err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func GetRoomInfo(roomID string) (*RoomInfo, error) {
+func GetRoomInfo(roomID int) (*RoomInfo, error) {
 	result := &RoomInfo{}
-	err := GetJson(fmt.Sprintf("https://api.live.bilibili.com/room/v1/Room/room_init?id=%s", roomID), result)
+	err := GetJson(fmt.Sprintf("https://api.live.bilibili.com/room/v1/Room/room_init?id=%d", roomID), result)
 	if err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func GetRoomRealID(roomID string) (string, error) {
+func GetRoomRealID(roomID int) (string, error) {
 	res, err := GetRoomInfo(roomID)
 	if err != nil {
 		return "", err
