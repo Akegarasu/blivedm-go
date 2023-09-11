@@ -9,7 +9,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const roomId = "8792912"
+const roomId = 8792912
 
 var dumps = []string{"GUARD_BUY", "USER_TOAST_MSG"}
 
