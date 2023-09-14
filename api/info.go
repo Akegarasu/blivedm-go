@@ -68,10 +68,10 @@ type UserInfo struct {
 		FaceNft       int    `json:"face_nft"`
 		FaceNftType   int    `json:"face_nft_type"`
 		LevelInfo     struct {
-			CurrentLevel int    `json:"current_level"`
-			CurrentMin   int    `json:"current_min"`
-			CurrentExp   int    `json:"current_exp"`
-			NextExp      string `json:"next_exp"`
+			CurrentLevel int `json:"current_level"`
+			CurrentMin   int `json:"current_min"`
+			CurrentExp   int `json:"current_exp"`
+			NextExp      int `json:"next_exp"`
 		} `json:"level_info"`
 		Mid            int     `json:"mid"`
 		MobileVerified int     `json:"mobile_verified"`
