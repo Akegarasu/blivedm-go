@@ -18,8 +18,8 @@ const (
 )
 
 const (
-	_ = iota
-	_
+	HandShake = iota
+	HandShakeResponse
 	HeartBeat
 	HeartBeatResponse
 	_
@@ -94,10 +94,21 @@ func (p *Packet) Unmarshal(v interface{}) error {
 }
 
 func (p *Packet) Build() []byte {
+	// default packet with some constants
+	// raw header length: buf[5] = 16
+	// seq: buf[16] = 1
 	rawBuf := []byte{0, 0, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}
+
+	// protocol version
 	binary.BigEndian.PutUint16(rawBuf[6:], p.ProtocolVersion)
+
+	// operation code
 	binary.BigEndian.PutUint32(rawBuf[8:], p.Operation)
+
+	// append payload
 	rawBuf = append(rawBuf, p.Body...)
+
+	// payload length
 	binary.BigEndian.PutUint32(rawBuf, uint32(len(rawBuf)))
 	return rawBuf
 }
