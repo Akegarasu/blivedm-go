@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Akegarasu/blivedm-go/api"
@@ -29,6 +30,7 @@ type Client struct {
 	customEventHandlers *customEventHandlers
 	cancel              context.CancelFunc
 	done                <-chan struct{}
+	lock                sync.RWMutex
 }
 
 // NewClient 创建一个新的弹幕 client
@@ -41,6 +43,7 @@ func NewClient(roomID int) *Client {
 		customEventHandlers: &customEventHandlers{},
 		done:                ctx.Done(),
 		cancel:              cancel,
+		lock:                sync.RWMutex{},
 	}
 }
 
@@ -140,9 +143,11 @@ func (c *Client) heartBeatLoop() {
 		case <-c.done:
 			return
 		case <-time.After(30 * time.Second):
+			c.lock.Lock()
 			if err := c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
 				log.Error(err)
 			}
+			c.lock.Unlock()
 			log.Debug("send: HeartBeat")
 		}
 	}
@@ -177,6 +182,8 @@ func (c *Client) UseDefaultHost() {
 
 func (c *Client) sendEnterPacket() error {
 	pkt := packet.NewEnterPacket(c.Uid, c.Buvid, c.RoomID, c.token)
+	c.lock.Lock()
+	defer c.lock.Lock()
 	if err := c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
 		return err
 	}
