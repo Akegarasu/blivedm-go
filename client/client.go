@@ -183,7 +183,7 @@ func (c *Client) UseDefaultHost() {
 func (c *Client) sendEnterPacket() error {
 	pkt := packet.NewEnterPacket(c.Uid, c.Buvid, c.RoomID, c.token)
 	c.lock.Lock()
-	defer c.lock.Lock()
+	defer c.lock.Unlock()
 	if err := c.conn.WriteMessage(websocket.BinaryMessage, pkt); err != nil {
 		return err
 	}
