@@ -21,7 +21,8 @@ type eventHandlers struct {
 	superChatHandlers      []func(*message.SuperChat)
 	giftHandlers           []func(*message.Gift)
 	guardBuyHandlers       []func(*message.GuardBuy)
-	liveHandlers           []func(*message.Live)
+	liveStartHandlers      []func(start *message.LiveStart)
+	liveStopHandlers       []func(start *message.LiveStop)
 	userToastHandlers      []func(*message.UserToast)
 }
 
@@ -61,11 +62,17 @@ func (c *Client) OnGuardBuy(f func(*message.GuardBuy)) {
 	c.eventHandlers.guardBuyHandlers = append(c.eventHandlers.guardBuyHandlers, f)
 }
 
-// OnLive 添加 开播事件 的处理器
-func (c *Client) OnLive(f func(*message.Live)) {
-	c.eventHandlers.liveHandlers = append(c.eventHandlers.liveHandlers, f)
+// OnLiveStart 添加 开播事件 的处理器
+func (c *Client) OnLiveStart(f func(start *message.LiveStart)) {
+	c.eventHandlers.liveStartHandlers = append(c.eventHandlers.liveStartHandlers, f)
 }
 
+// OnLiveStop 添加 关播事件 的处理器
+func (c *Client) OnLiveStop(f func(start *message.LiveStop)) {
+	c.eventHandlers.liveStopHandlers = append(c.eventHandlers.liveStopHandlers, f)
+}
+
+// OnUserToast 添加 UserToast 的处理
 // OnUserToast 添加 UserToast 的处理器
 func (c *Client) OnUserToast(f func(*message.UserToast)) {
 	c.eventHandlers.userToastHandlers = append(c.eventHandlers.userToastHandlers, f)
@@ -88,36 +95,49 @@ func (c *Client) Handle(p packet.Packet) {
 			return
 		}
 		switch cmd {
+		// 弹幕
 		case "DANMU_MSG":
 			d := new(message.Danmaku)
 			d.Parse(p.Body)
 			for _, fn := range c.eventHandlers.danmakuMessageHandlers {
 				go cover(func() { fn(d) })
 			}
+			// 醒目留言
 		case "SUPER_CHAT_MESSAGE":
 			s := new(message.SuperChat)
 			s.Parse(p.Body)
 			for _, fn := range c.eventHandlers.superChatHandlers {
 				go cover(func() { fn(s) })
 			}
+			// 礼物
 		case "SEND_GIFT":
 			g := new(message.Gift)
 			g.Parse(p.Body)
 			for _, fn := range c.eventHandlers.giftHandlers {
 				go cover(func() { fn(g) })
 			}
+			// 大航海
 		case "GUARD_BUY":
 			g := new(message.GuardBuy)
 			g.Parse(p.Body)
 			for _, fn := range c.eventHandlers.guardBuyHandlers {
 				go cover(func() { fn(g) })
 			}
+			// 开播
 		case "LIVE":
-			l := new(message.Live)
+			l := new(message.LiveStart)
 			l.Parse(p.Body)
-			for _, fn := range c.eventHandlers.liveHandlers {
+			for _, fn := range c.eventHandlers.liveStartHandlers {
 				go cover(func() { fn(l) })
 			}
+			//下播
+		case "PREPARING":
+			l := new(message.LiveStop)
+			l.Parse(p.Body)
+			for _, fn := range c.eventHandlers.liveStopHandlers {
+				go cover(func() { fn(l) })
+			}
+		// 用户 toast
 		case "USER_TOAST_MSG":
 			u := new(message.UserToast)
 			u.Parse(p.Body)
