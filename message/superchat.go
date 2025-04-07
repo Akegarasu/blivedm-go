@@ -6,7 +6,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// SuperChat
+// SuperChat 超级弹幕消息结构体
 // message_jpn: 消息日文翻译（目前只出现在SUPER_CHAT_MESSAGE_JPN）
 // id_: str，消息ID，删除时用
 type SuperChat struct {
