@@ -77,7 +77,8 @@ func (c *Client) init() error {
 	c.RoomID = roomInfo.Data.RoomId
 	if c.host == "" {
 		info, err := api.GetDanmuInfo(c.RoomID, c.Cookie)
-		if err != nil {
+		// Workaround for getDanmuInfo API. Error code 352
+		if err != nil || info.Code != 0 {
 			c.hostList = []string{"broadcastlv.chat.bilibili.com"}
 		} else {
 			for _, h := range info.Data.HostList {

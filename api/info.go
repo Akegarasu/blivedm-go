@@ -3,9 +3,10 @@ package api
 import (
 	"errors"
 	"fmt"
-	"github.com/tidwall/gjson"
 	"net/http"
 	"strconv"
+
+	"github.com/tidwall/gjson"
 )
 
 // RoomInfo
@@ -59,6 +60,7 @@ type DanmuInfo struct {
 func GetUid(cookie string) (int, error) {
 	headers := &http.Header{}
 	headers.Set("cookie", cookie)
+	headers.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:137.0) Gecko/20100101 Firefox/137.0")
 	resp, err := HttpGet("https://api.bilibili.com/x/web-interface/nav", headers)
 	if err != nil {
 		return 0, err
@@ -74,6 +76,7 @@ func GetDanmuInfo(roomID int, cookie string) (*DanmuInfo, error) {
 	result := &DanmuInfo{}
 	headers := &http.Header{}
 	headers.Set("cookie", cookie)
+	headers.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:137.0) Gecko/20100101 Firefox/137.0")
 	err := GetJsonWithHeader(fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id=%d&type=0", roomID), headers, result)
 	if err != nil {
 		return nil, err
@@ -83,7 +86,9 @@ func GetDanmuInfo(roomID int, cookie string) (*DanmuInfo, error) {
 
 func GetRoomInfo(roomID int) (*RoomInfo, error) {
 	result := &RoomInfo{}
-	err := GetJson(fmt.Sprintf("https://api.live.bilibili.com/room/v1/Room/room_init?id=%d", roomID), result)
+	headers := &http.Header{}
+	headers.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:137.0) Gecko/20100101 Firefox/137.0")
+	err := GetJsonWithHeader(fmt.Sprintf("https://api.live.bilibili.com/room/v1/Room/room_init?id=%d", roomID), headers, result)
 	if err != nil {
 		return nil, err
 	}
