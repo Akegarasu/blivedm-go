@@ -77,7 +77,13 @@ func GetDanmuInfo(roomID int, cookie string) (*DanmuInfo, error) {
 	headers := &http.Header{}
 	headers.Set("cookie", cookie)
 	headers.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:137.0) Gecko/20100101 Firefox/137.0")
-	err := GetJsonWithHeader(fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id=%d&type=0", roomID), headers, result)
+
+	signedUrl, err := WbiKeysSignString(fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id=%d&type=0", roomID))
+	if err != nil {
+		return nil, err
+	}
+
+	err = GetJsonWithHeader(signedUrl, headers, result)
 	if err != nil {
 		return nil, err
 	}

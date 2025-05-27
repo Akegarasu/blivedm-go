@@ -72,7 +72,7 @@ func (c *Client) init() error {
 	roomInfo, err := api.GetRoomInfo(c.RoomID)
 	// 失败降级
 	if err != nil || roomInfo.Code != 0 {
-		log.Errorf("room=%s init GetRoomInfo fialed, %s", c.RoomID, err)
+		log.Errorf("room=%d init GetRoomInfo fialed, %s", c.RoomID, err)
 	}
 	c.RoomID = roomInfo.Data.RoomId
 	if c.host == "" {
