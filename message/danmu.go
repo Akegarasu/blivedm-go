@@ -25,20 +25,43 @@ type (
 	}
 
 	Extra struct {
-		SendFromMe     bool   `json:"send_from_me"`
-		Mode           int    `json:"mode"`
-		Color          int    `json:"color"`
-		DmType         int    `json:"dm_type"`
-		FontSize       int    `json:"font_size"`
-		PlayerMode     int    `json:"player_mode"`
-		ShowPlayerType int    `json:"show_player_type"`
-		Content        string `json:"content"`
-		UserHash       string `json:"user_hash"`
-		EmoticonUnique string `json:"emoticon_unique"`
-		Direction      int    `json:"direction"`
-		PkDirection    int    `json:"pk_direction"`
-		SpaceType      string `json:"space_type"`
-		SpaceUrl       string `json:"space_url"`
+		SendFromMe            bool   `json:"send_from_me"`
+		MasterPlayerHidden    bool   `json:"master_player_hidden"`
+		Mode                  int    `json:"mode"`
+		Color                 int    `json:"color"`
+		DmType                int    `json:"dm_type"`
+		FontSize              int    `json:"font_size"`
+		PlayerMode            int    `json:"player_mode"`
+		ShowPlayerType        int    `json:"show_player_type"`
+		Content               string `json:"content"`
+		UserHash              string `json:"user_hash"`
+		EmoticonUnique        string `json:"emoticon_unique"`
+		BulgeDisplay          int    `json:"bulge_display"`
+		RecommendScore        int    `json:"recommend_score"`
+		MainStateDmColor      string `json:"main_state_dm_color"`
+		ObjectiveStateDmColor string `json:"objective_state_dm_color"`
+		Direction             int    `json:"direction"`
+		PkDirection           int    `json:"pk_direction"`
+		QuartetDirection      int    `json:"quartet_direction"`
+		AnniversaryCrowd      int    `json:"anniversary_crowd"`
+		YeahSpaceType         string `json:"yeah_space_type"`
+		YeahSpaceURL          string `json:"yeah_space_url"`
+		JumpToURL             string `json:"jump_to_url"`
+		SpaceType             string `json:"space_type"`
+		SpaceURL              string `json:"space_url"`
+		// Animation             any    `json:"animation"`
+		// Emots                 any    `json:"emots"`
+		IsAudited bool   `json:"is_audited"`
+		IDStr     string `json:"id_str"`
+		// Icon                  any    `json:"icon"`
+		ShowReply       bool   `json:"show_reply"`
+		ReplyMid        int    `json:"reply_mid"`
+		ReplyUname      string `json:"reply_uname"`
+		ReplyUnameColor string `json:"reply_uname_color"`
+		ReplyIsMystery  bool   `json:"reply_is_mystery"`
+		ReplyTypeEnum   int    `json:"reply_type_enum"`
+		HitCombo        int    `json:"hit_combo"`
+		EsportsJumpURL  string `json:"esports_jump_url"`
 	}
 	Emoticon struct {
 		BulgeDisplay   int    `json:"bulge_display"`
