@@ -74,6 +74,10 @@ func main() {
 
 ```
 
+#### Cookie相关
+
+截至2025年06月25日，必要的cookie为`buvid3`, `SESSDATA`, `bili_jct`
+
 ### 进阶使用
 
 #### 监听自定义事件
