@@ -87,6 +87,10 @@ func (c *Client) init() error {
 		}
 		c.token = info.Data.Token
 	}
+	if c.token == "" {
+		log.Error("cannot get account token")
+		return errors.New("token 获取失败")
+	}
 	return nil
 }
 
